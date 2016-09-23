@@ -1,0 +1,7 @@
+$if mode=vi
+set keymap vi-command
+"h": backward-char
+"t": next-history
+"n": previous-history
+"s": forward-char
+$endif

@@ -1,0 +1,41 @@
+hostof()
+{
+  local host
+
+  host="$(echo $1 | cut -f1 -d:)
+  host="$(echo $host | cut -f2- -d@)
+}
+
+
+sudocp()
+{
+  local fromspec tospec fromfile fromhost tofile tohost fromcmd tocmd
+
+  fromspec="$1"
+  shift 1
+  tospec="$1"
+  shift 1
+
+  fromfile="$(fileof fromspec)"
+  fromhost="$(hostof fromspec)"
+  fromsudo="$(sudoof fromspec)"
+  tofile="$(fileof tospec)"
+  tohost="$(hostof tospec)"
+  tosudo="$(sudoof tospec)"
+
+  if [ -n "$fromhost" ]
+  then
+    fromcmd="ssh $@ $fromhost sudo cat $fromfile"
+  else
+    fromcmd="sudo cat $fromfile"
+  fi
+
+  if [ -n "$tohost" ]
+  then
+    tocmd="ssh $@ $tohost sudo dd of=$tofile"
+  else
+    tocmd="sudo dd of=$tofile"
+  fi
+
+
+}

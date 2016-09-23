@@ -1,0 +1,92 @@
+active_terminal_list="xterm* gnome-term* vt* ansi"
+
+jp_active_prompt=false
+
+for aterm in ${PROMPT_ACTIVETERMS:-$active_terminal_list}
+do
+   if [[ $TERM == $aterm ]]
+   then
+      jp_active_prompt=true
+   fi
+done
+
+if [ "$jp_active_prompt" == true ]
+then
+   export jp_own_pre="$(echo -e '\033[32m')"
+   export jp_own_post="$(echo -e '\033[0m')"
+   export jp_write_pre="$(echo -e '\033[36m')"
+   export jp_write_post="$(echo -e '\033[0m')"
+   export jp_nothing_pre="$(echo -e '\033[31m')"
+   export jp_nothing_post="$(echo -e '\033[0m')"
+   export jp_bold_pre="$(echo -e '\033[1m')"
+   export jp_bold_post="$(echo -e '\033[0m')"
+   export jp_err_pre="$(echo -e '\033[1;31m')"
+   export jp_err_post="$(echo -e '\033[0m')"
+   export jp_agent_pre="$(echo -e '\033[4m')"
+   export jp_agent_post="$(echo -e '\033[0m')"
+   export jp_title=$(echo -e '\033]0;')'\u@\H\$\a'
+else
+   export jp_own_pre=''
+   export jp_own_post='*'
+   export jp_write_pre=''
+   export jp_write_post='+'
+   export jp_nothing_pre=''
+   export jp_nothing_post=''
+   export jp_bold_pre='*'
+   export jp_bold_post='*'
+   export jp_agent_pre=''
+   export jp_agent_post='->'
+   export jp_err_pre=''
+   export jp_err_post=''
+   export jp_title=''
+fi
+
+jp_basename() {
+    unset rv_basename
+    local bn="${1%/*}"
+    rv_basename="${bn:-/}"
+}
+
+jp_git_dir() {
+    unset rv_jp_git_dir
+    local dir="${1:-$PWD}"
+    local newdir
+
+    if [ -d "$dir/.git" ]
+    then
+        rv_jp_git_dir="$dir/.git"
+    else
+        jp_basename "$dir"
+        newdir="$rv_basename"
+        if [ "$newdir" != / ]
+        then
+            jp_git_dir "$newdir"
+        fi
+    fi
+}
+
+set_jp_branch() {
+    unset jp_branch
+    jp_git_dir
+    local gitdir="$rv_jp_git_dir"
+    local refline branch
+
+    if [ -n "$gitdir" ]
+    then
+        exec 4<"$gitdir/HEAD"
+        read -u 4 refline
+        exec 4<&-
+        jp_branch="${refline#ref: refs/heads/}"
+    fi
+}
+
+export PROMPT_COMMAND='ec=$?; set_jp_branch; br="$jp_branch"; jp_br=""; jp_bb=""; jp_be=""; jp_err=""; jp_eb=""; jp_ee=""; jp_wb=""; jp_we=""; jp_ab=""; jp_ae=""; jp_e=""; if [[ -O "$PWD" ]]; then jp_wb=$jp_own_pre; jp_we=$jp_own_post; elif [[ -w "$PWD" ]]; then jp_wb=$jp_write_pre; jp_we=$jp_write_post; else jp_wb=$jp_nothing_pre; jp_we=$jp_nothing_post; fi; if [[ -w $SSH_AUTH_SOCK ]]; then jp_ab=$jp_agent_pre; jp_ae=$jp_agent_post; fi; if [[ $ec -ne 0 ]]; then jp_err=" ($ec)"; jp_eb=$jp_err_pre; jp_ee=$jp_err_post; fi; if [[ "$br" = master ]]; then jp_bb=$jp_bold_pre; jp_be=$jp_bold_post; fi; if [[ -n "$br" ]]; then jp_br="[$br]"; fi'
+
+if [ "$jp_active_prompt" == true ]
+then
+   PS1="\\[${jp_title}\\]"'\[${jp_ab}\]\u\[${jp_ae}\]@\H:\[$jp_bb\]$jp_br\[$jp_be\]\[${jp_wb}\]\w\[${jp_we}\]\[${jp_eb}\]${jp_err}\[${jp_ee}\]\$ '
+else
+   PS1='${jp_ab}\u${jp_ae}@\H:${jp_bb}${jp_br}${jp_be}${jp_wb}\w${jp_we}${jp_err}\$ '
+fi
+
+export PS1

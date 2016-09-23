@@ -1,0 +1,30 @@
+#!/bin/bash
+
+export ENV_HOME=${ENV_HOME:-/usr/local/env/${SUDO_USER:-$USER}}
+
+mac_emacs="/Applications/Emacs.app/Contents/MacOS/Emacs"
+
+test -d ~/.backups || mkdir ~/.backups
+
+if [ -x "$mac_emacs" ]
+then
+    emacs="$mac_emacs"
+else
+    emacs=$(which emacs)
+fi
+
+vim=$(which vim)
+
+if [ -n "$emacs" ]
+then
+    echo "$emacs" -q -l $ENV_HOME/emacs "$@"
+    exec "$emacs" -q -l $ENV_HOME/emacs "$@"
+elif [ -n "$vim" ]
+then
+    echo "$vim" -u $ENV_HOME/vimrc  --cmd "set rtp^=$ENV_HOME/vim" "$@"
+    exec "$vim" -u $ENV_HOME/vimrc  --cmd "set rtp^=$ENV_HOME/vim" "$@"
+else
+    echo vi "$@"
+    exec vi "$@"
+fi
+

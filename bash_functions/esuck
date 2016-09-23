@@ -1,0 +1,6 @@
+esync()
+{
+    local manifest=".bashrc .bash_prompt .bash_functions .emacs .emacs.d .viper .vimrc .inputrc"
+
+    rsync -Prv $manifest "$1":
+}
