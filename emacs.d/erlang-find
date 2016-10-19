@@ -1,0 +1,13 @@
+#!/usr/bin/env escript
+%% -*- erlang -*-
+
+main(_) ->
+  io:format("erlang-root-dir=~s erlang-load-path=~s erlang-exec-path=/~s~n",
+  [
+    code:root_dir(),
+    code:lib_dir(tools, emacs),
+    string:join(
+      lists:droplast(
+        string:tokens(
+          os:find_executable(erl), "/")), "/")
+    ]).

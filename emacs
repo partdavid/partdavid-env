@@ -123,5 +123,26 @@
 (put 'ruby-indent-level 'safe-local-variable 'integerp)
 (put 'python-indent 'safe-local-variable 'integerp)
 (put 'cperl-indent-level 'safe-local-variable 'integerp)
+(put 'encoding 'safe-local-variable 'symbolp)
+
+;erlang
+(defun erlang-find ()
+  "Create alist of erlang parameters for erlang mode"
+  (let ((erlangf (shell-command-to-string (envhome "emacs.d/erlang-find"))))
+    (if (string-match-p "[Nn]o such" erlangf)
+        nil
+      (mapcar
+       (lambda (kv) (apply #'cons (split-string kv "=")))
+       (split-string
+        (shell-command-to-string (envhome "emacs.d/erlang-find")))))))
+
+(setq erlang-param (erlang-find))
+
+(when erlang-param
+  (setq load-path (cons (cdr (assoc "erlang-load-path" erlang-param))
+                         load-path))
+  (setq erlang-root-dir (cdr (assoc "erlang-root-dir" erlang-param)))
+  (setq exec-path (cons (cdr (assoc "erlang-exec-path" erlang-param)) exec-path))
+  (require 'erlang-start))
 
 (run-hooks after-init-hook)
