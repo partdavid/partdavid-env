@@ -12,9 +12,11 @@
   "concatenate ENV_HOME with file"
   (concat (getenv "ENV_HOME") "/" file))
 
+(setq ns-right-alternate-modifier nil)
+
 (setq-default indent-tabs-mode nil)
-(setq-default tab-width 4)
-(setq-default standard-indent 4)
+(setq-default tab-width 2)
+(setq-default standard-indent 2)
 (setq-default require-final-newline t)
 (setq inhibit-startup-screen t)
 (setq require-final-newline t)
@@ -144,5 +146,32 @@
   (setq erlang-root-dir (cdr (assoc "erlang-root-dir" erlang-param)))
   (setq exec-path (cons (cdr (assoc "erlang-exec-path" erlang-param)) exec-path))
   (require 'erlang-start))
+
+;markdown
+(add-to-list 'load-path (envhome "emacs.d/markdown-mode"))
+(autoload 'markdown-mode "markdown-mode"
+   "Major mode for editing Markdown files" t)
+(add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-mode))
+(add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
+
+;hcl
+(add-to-list 'load-path (envhome "emacs.d/hcl-mode"))
+(autoload 'hcl-mode "hcl-mode"
+  "Major mode for Hashicorp Config Language" t)
+(add-to-list 'auto-mode-alist '("\\.hcl\\'" . hcl-mode))
+(add-hook 'hcl-mode-hook
+  (lambda ()
+    (setq hcl-indent-level standard-indent)))
+
+;terraform
+(add-to-list 'load-path (envhome "emacs.d/terraform-mode"))
+(autoload 'terraform-mode "terraform-mode"
+  "Major mode for editing Terraform files" t)
+(add-to-list 'auto-mode-alist '("\\.tf\\'" . terraform-mode))
+(add-to-list 'auto-mode-alist '("\\.tfvars\\'" . terraform-mode))
+(add-hook 'terraform-mode-hook
+  (lambda ()
+    (setq terraform-indent-level standard-indent)))
+
 
 (run-hooks after-init-hook)

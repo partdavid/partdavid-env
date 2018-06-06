@@ -50,8 +50,16 @@ source_if_set "$SOURCE_FUNCTIONS" bash_functions
 source_if_set "$SOURCE_ALIASES" bash_aliases
 source_if_set "$SOURCE_PROMPT" bash_prompt
 
+if which pyenv >/dev/null 2>&1
+then
+    export PATH=$(pyenv root)/shims:$PATH
+fi
+
+if which rbenv >/dev/null 2>&1
+then
+    export PATH=$(rbenv root)/shims:$PATH
+fi
+
 set -o vi
 
 alias r='. $ENV_HOME/bashrc'
-
-export gerrit=git+ssh://review:29418
