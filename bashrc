@@ -53,11 +53,19 @@ source_if_set "$SOURCE_PROMPT" bash_prompt
 if which pyenv >/dev/null 2>&1
 then
     export PATH=$(pyenv root)/shims:$PATH
+    eval "$(pyenv init -)"
 fi
 
 if which rbenv >/dev/null 2>&1
 then
     export PATH=$(rbenv root)/shims:$PATH
+    eval "$(rbenv init -)"
+fi
+
+if which nodenv >/dev/null 2>&1
+then
+    export PATH=$(nodenv root)/shims:$PATH
+    eval "$(nodenv init -)"
 fi
 
 set -o vi

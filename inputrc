@@ -1,3 +1,4 @@
+set editing-mode vi
 $if mode=vi
 set keymap vi-command
 "h": backward-char
