@@ -53,8 +53,8 @@
   (if
       (string-match "\\([0-9]+\\)\." version-string)
       (string-to-number (match-string 1 version-string))
-    nil
-    )
+    nil 
+   )
   )
 
 (when (< (extract-major-version (emacs-version)) 24)
@@ -83,6 +83,9 @@
   '(lambda ()
     (setq ruby-insert-encoding-magic-comment nil)
     (setq ruby-indent-level standard-indent)))
+
+;javascript
+(setq js-indent-level standard-indent)
 
 ;rspec
 (add-to-list 'load-path (envhome "emacs.d/rspec-mode"))
