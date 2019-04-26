@@ -1,0 +1,215 @@
+#!/usr/bin/env ruby
+
+# For now, a bare ruby script
+
+require 'optimist'
+require 'json'
+
+# This is basically my "data model"
+METADATA_FIELDS = %w(timestamp time help ticket)
+METADATA_FORMAT = '%-20.20s %-8.8s %-15.15s %-15.15s %s'
+
+def wrn(msg)
+  $stderr.puts "warning: #{msg}"
+end
+
+def die(msg)
+  $stderr.puts "fatal: #{msg}"
+  Process.exit 1
+end
+
+def extract_kv(args)
+  words = [ ]
+  kv = { }
+  processing_kvs = true
+
+  args.each do |arg|
+    if processing_kvs and m = /(\w+)([=\!])(.*)/.match(arg)
+      case m[2]
+      when '!'
+        kv[m[1]] = false
+      when '='
+        if m[3].empty?
+          kv[m[1]] = nil
+        else
+          kv[m[1]] = m[3]
+        end
+      end
+    else
+      if processing_kvs and METADATA_FIELDS.include?(arg)
+        kv[arg] = true
+      else
+        processing_kvs = false
+        words.push arg
+      end
+    end
+  end
+
+  return {
+    words: words,
+    kv: kv
+  }
+end
+
+def vrb(msg)
+  puts "note: #{msg}" if @opts[:verbose]
+end
+
+def dbg(msg)
+  puts "DBG(note): #{msg}" if @opts[:debug]
+end
+
+def fmt_note(note, indent='')
+  metadata = METADATA_FIELDS.map { |field| note[field] }
+  nonmetadata_fields = note.reject { |k, v| METADATA_FIELDS.include? k or k == 'note' }
+  METADATA_FORMAT % (metadata + [note['note']]) + "\n" + \
+  indent + METADATA_FORMAT % (METADATA_FIELDS.map { |x| '' } + [nonmetadata_fields.to_json])
+end
+
+def new_note(argv, defaults={})
+  parsed = extract_kv argv
+  kv = parsed[:kv]
+
+  if kv.has_key? 'timestamp'
+    kv['timestamp'] = DateTime.parse(kv['timestamp'])
+  end
+
+  words = parsed[:words]
+  approved = kv.slice METADATA_FIELDS
+
+  if words == ['-']
+    note = $stdin.read.chomp
+  else
+    note = words.join ' '
+  end
+
+  kv['note'] = note unless note.empty?
+
+  defaults.merge kv
+end
+
+def save_note(note, ts=nil)
+  ts ||= Time.now
+  id = note['id'] || ts.strftime('%s') + '.json'
+  file = File.join(@opts[:dir], id)
+
+  unless @opts[:dry_run]
+    File.open(file, 'w') { |fh| fh.write JSON.pretty_generate note }
+  end
+  vrb "Saved #{file}"
+  id
+end
+
+def do_create(argv)
+  ts = Time.now
+  kv = new_note(argv, { 'timestamp' => ts.strftime('%Y-%m-%d %H:%M:%S') })
+
+  save_note(kv, ts)
+end
+
+def match_conditions(conditions, note)
+  conditions.each do |field, value|
+    if m = /^\/(.*)\/$/.match(value)
+      op = proc { |item| Regexp.new(m[1]).match item }
+    elsif m = /^\~(.*)/.match(value)
+      op = proc { |item| item.include? m[1] }
+    elsif m = /^([<>])(.*)/.match(value)
+      op = case m[1]
+           when '<'
+             proc { |item| item < m[2] }
+           when '>'
+             proc { |item| item > m[2] }
+           end
+    elsif value.nil? or value.empty?
+      op = proc { |item| item.nil? or item.empty? }
+    else
+      op = proc { |item| value == item }
+    end
+
+    return false unless op.call(note[field])
+  end
+  return true
+end
+
+def retrieve_notes(argv)
+  parsed = extract_kv argv
+  conditions = parsed[:kv]
+  conditions['note'] = '~' + parsed[:words].join(' ') unless parsed[:words].nil? or parsed[:words].empty?
+
+  notes = Dir.entries(@opts[:dir]).select { |f| /.*\.json$/.match f }.map do |filename|
+    File.open(File.join(@opts[:dir], filename), 'r') { |fh| JSON.load(fh) }.merge({ 'id' => filename })
+  end
+
+  notes.select { |note| match_conditions(conditions, note) }.sort { |a, b| b['timestamp'] <=> a['timestamp'] }
+end
+
+def do_list(argv)
+  if @opts[:select] and not @opts[:select].empty?
+    wrn "--select was specified when --action is list, so other arguments are ignored" unless argv.empty?
+    argv = @opts[:select]
+  end
+  puts METADATA_FORMAT % (METADATA_FIELDS + ['note'])
+  retrieve_notes(argv).each do |note|
+    puts fmt_note note
+  end
+end
+
+def do_edit(argv)
+  die "You need to specify --select if editing notes" unless @opts[:select] and not @opts[:select].empty?
+  puts 'D ' + METADATA_FORMAT % (METADATA_FIELDS + ['note'])
+  retrieve_notes(@opts[:select]).each do |note|
+    puts '- ' + fmt_note(note, '  ')
+    updated_fields = new_note argv
+    edited_note = note.merge updated_fields
+    puts '+ ' + fmt_note(edited_note, '  ')
+    save_note edited_note
+  end
+end
+
+def do_delete(argv)
+  if @opts[:select] and not @opts[:select].empty?
+    die "--select was specified when --action is delete, so other arguments would have been ignored" unless argv.empty?
+  else
+    die "You need to specify --select when deleting notes"
+  end
+  puts 'D ' + METADATA_FORMAT % (METADATA_FIELDS + ['note'])
+  retrieve_notes(@opts[:select]).each do |note|
+    puts '- ' + fmt_note(note, '  ')
+    file = File.join(@opts[:dir], note['id'])
+    File.unlink file unless @opts[:dry_run]
+    vrb "Removed #{file}"
+  end
+end
+
+@opts = Optimist::options do
+  version "note 0.1.0"
+  banner <<EOF
+Usage:
+  note [options] [metadata] [message]
+EOF
+
+  opt :version, "Print version", short: :none, type: :flag
+  opt :verbose, "Verbose output", short: 'v', type: :flag
+  opt :debug, "Debugging output", short: 'D', type: :flag
+  opt :dir, "Data directory", short: 'd', type: :string, default: File.join(ENV['HOME'], '.notes')
+  opt :action, "Action (create, list, edit, delete)", short: 'A', type: :string, default: 'default_create'
+  opt :select, "Select notes for action", short: 's', type: :string, multi: true
+  opt :dry_run, "Don't change anything", short: 'n', type: :boolean, default: false
+end
+
+if ARGV.empty? and @opts[:action] == 'default_create'
+  @opts[:action] = 'list'
+end
+
+case @opts[:action]
+when 'create', 'default_create'
+  do_create(ARGV)
+when 'list'
+  do_list(ARGV)
+when 'edit'
+  do_edit(ARGV)
+when 'delete'
+  do_delete(ARGV)
+else
+  raise "Unknown action: #{@opts[:action]}"
+end
