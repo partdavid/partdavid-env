@@ -1,0 +1,12 @@
+#!/bin/bash
+
+seconds="$1"
+
+while [[ $seconds -gt 0 ]]
+do
+    printf '\r[%s] - %8i' "$(date +'%Y-%m-%d %H:%M:%S')" "${seconds}"
+    let seconds=seconds-1
+    sleep 1
+done
+printf '\r[%s] - %8i' "$(date +'%Y-%m-%d %H:%M:%S')" 0
+echo -e '\a'

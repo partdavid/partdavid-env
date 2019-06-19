@@ -1,0 +1,75 @@
+#!/usr/bin/env python
+
+from __future__ import print_function
+
+import sys
+import os
+import stat
+import argparse
+
+def vrb(message):
+    if args.verbose:
+        print(message)
+
+def average_line_length(fh, file_size, portions=10, portion_lines=10):
+    byte_count = 0
+    line_count = 0
+    for portion in range(portions):
+        offset = portion * file_size / portions
+        count = 0
+        fh.seek(offset, 0)
+        fh.readline()          # Throw away partial line
+        while True:
+            line = fh.readline()
+            if line == '':
+                break
+            byte_count += len(line)
+            count += 1
+            line_count += 1
+            if count >= portion_lines:
+                break
+    return byte_count / line_count
+
+def extract_samples(fh, number, sample_lines, file_size, average_line_length, filename_pattern='sample-%2i'):
+    for sample in range(number):
+        offset = sample * file_size / number
+        count = 0
+        fh.seek(offset, 0)
+        fh.readline()
+        vrb('  extracting approximately lines {} - {} to {}'.format(offset / avg_line_length,
+                                                      (offset / average_line_length) + sample_lines,
+                                                      filename_pattern % sample))
+        with open(filename_pattern % sample, 'w') as outfh:
+            while True:
+                line = fh.readline()
+                if line == '':
+                    break
+                outfh.write(line)
+                count += 1
+                if count >= sample_lines:
+                    break
+
+parser = argparse.ArgumentParser()
+parser.add_argument('logfile', help='logfile to sample lines from')
+parser.add_argument('-t', '--target', help='target base filename to append suffix pattern to', default='')
+parser.add_argument('-v', '--verbose', help='print verbose output', action='store_true')
+parser.add_argument('-n', '--number', help='number of samples to create', type=int, default=10)
+parser.add_argument('-l', '--lines', help='number of lines in each sample', type=int, default=10)
+parser.add_argument('-s', '--suffix-pattern', help='pattern of suffix', default=',sample-%.2i')
+args = parser.parse_args()
+
+logfile_size = os.stat(args.logfile).st_size
+if args.target == '':
+    target_filename = args.logfile
+else:
+    target_filename = args.target
+
+with open(args.logfile, 'rb') as log:
+    avg_line_length = average_line_length(log, logfile_size)
+    apx_total_lines = logfile_size / avg_line_length
+    vrb('{} has approximately {} lines (average line length is {})'.format(args.logfile, apx_total_lines, avg_line_length))
+    extract_samples(log, args.number,
+                    sample_lines=args.lines,
+                    file_size=logfile_size,
+                    average_line_length=avg_line_length,
+                    filename_pattern=target_filename + args.suffix_pattern)
