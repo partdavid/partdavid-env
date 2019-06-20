@@ -1,5 +1,5 @@
 #!bash
-export ENV_HOME=/usr/local/env/${SUDO_USER:-$USER}
+export ENV_HOME=${ENV_HOME:-$HOME/partdavid-env}
 export INPUTRC=$ENV_HOME/inputrc
 export PATH=$HOME/bin:$ENV_HOME/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
 if [ -x $ENV_HOME/bin/editor ]
@@ -56,7 +56,10 @@ then
     eval "$(pyenv init -)"
 fi
 
-if which rbenv >/dev/null 2>&1
+if [[ -f /usr/local/share/chruby/chruby.sh ]]
+then
+    . /usr/local/share/chruby/chruby.sh
+elif which rbenv >/dev/null 2>&1
 then
     export PATH=$(rbenv root)/shims:$PATH
     eval "$(rbenv init -)"

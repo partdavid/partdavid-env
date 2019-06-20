@@ -1,4 +1,3 @@
-
 ; emacs -q -l /usr/local/env/jbrinkley/emacs
 (unless
   (getenv "ENV_HOME")
@@ -53,8 +52,8 @@
   (if
       (string-match "\\([0-9]+\\)\." version-string)
       (string-to-number (match-string 1 version-string))
-    nil 
-   )
+    nil
+    )
   )
 
 (when (< (extract-major-version (emacs-version)) 24)
@@ -83,9 +82,6 @@
   '(lambda ()
     (setq ruby-insert-encoding-magic-comment nil)
     (setq ruby-indent-level standard-indent)))
-
-;javascript
-(setq js-indent-level standard-indent)
 
 ;rspec
 (add-to-list 'load-path (envhome "emacs.d/rspec-mode"))
@@ -131,24 +127,29 @@
 (put 'encoding 'safe-local-variable 'symbolp)
 
 ;erlang
-(defun erlang-find ()
-  "Create alist of erlang parameters for erlang mode"
-  (let ((erlangf (shell-command-to-string (envhome "emacs.d/erlang-find"))))
-    (if (string-match-p "[Nn]o such" erlangf)
-        nil
-      (mapcar
-       (lambda (kv) (apply #'cons (split-string kv "=")))
-       (split-string
-        (shell-command-to-string (envhome "emacs.d/erlang-find")))))))
+; TODO - this section is dependent on an external command which runs on MacOS and Linux (for now)
+(if (not (string-equal system-type "windows-nt"))
+    (
+     (defun erlang-find ()
+       "Create alist of erlang parameters for erlang mode"
+       (let ((erlangf (shell-command-to-string (envhome "emacs.d/erlang-find"))))
+         (if (string-match-p "[Nn]o such" erlangf)
+             nil
+           (mapcar
+            (lambda (kv) (apply #'cons (split-string kv "=")))
+            (split-string
+             (shell-command-to-string (envhome "emacs.d/erlang-find")))))))
 
-(setq erlang-param (erlang-find))
+     (setq erlang-param (erlang-find))
 
-(when erlang-param
-  (setq load-path (cons (cdr (assoc "erlang-load-path" erlang-param))
-                         load-path))
-  (setq erlang-root-dir (cdr (assoc "erlang-root-dir" erlang-param)))
-  (setq exec-path (cons (cdr (assoc "erlang-exec-path" erlang-param)) exec-path))
-  (require 'erlang-start))
+     (when erlang-param
+       (setq load-path (cons (cdr (assoc "erlang-load-path" erlang-param))
+                             load-path))
+       (setq erlang-root-dir (cdr (assoc "erlang-root-dir" erlang-param)))
+       (setq exec-path (cons (cdr (assoc "erlang-exec-path" erlang-param)) exec-path))
+       (require 'erlang-start))
+     )
+  )
 
 ;markdown
 (add-to-list 'load-path (envhome "emacs.d/markdown-mode"))
@@ -176,5 +177,13 @@
   (lambda ()
     (setq terraform-indent-level standard-indent)))
 
+;powershell
+(add-to-list 'load-path (envhome "emacs.d/powershell-mode"))
+(autoload 'powershell-mode "powershell-mode"
+  "Major mode for editing powershell files" t)
+(add-to-list 'auto-mode-alist '("\\.ps1\\'" . powershell-mode))
+(add-hook 'powershell-mode-hook
+          (lambda ()
+            (setq powershell-indent standard-indent)))
 
-(run-hooks after-init-hook)
+(run-hooks 'after-init-hook)
