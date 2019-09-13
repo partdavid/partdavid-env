@@ -129,31 +129,26 @@
 ;erlang
 ; TODO - this section is dependent on an external command which runs on MacOS and Linux (for now)
 (if (not (string-equal system-type "windows-nt"))
-    (progn
-      (defun erlang-find ()
-        "Create alist of erlang parameters for erlang mode"
-        (let (
-              (erlangf (shell-command-to-string (envhome "emacs.d/erlang-find")))
-              )
-          (if (string-match-p "[Nn]o such" erlangf)
-              nil
-            (mapcar
-             (lambda (kv) (apply #'cons (split-string kv "=")))
-             (split-string
-              (shell-command-to-string (envhome "emacs.d/erlang-find"))))
-            )
-          )
-        )
+    (
+     (defun erlang-find ()
+       "Create alist of erlang parameters for erlang mode"
+       (let ((erlangf (shell-command-to-string (envhome "emacs.d/erlang-find"))))
+         (if (string-match-p "[Nn]o such" erlangf)
+             nil
+           (mapcar
+            (lambda (kv) (apply #'cons (split-string kv "=")))
+            (split-string
+             (shell-command-to-string (envhome "emacs.d/erlang-find")))))))
 
-      (setq erlang-param (erlang-find))
+     (setq erlang-param (erlang-find))
 
-      (when erlang-param
-        (setq load-path (cons (cdr (assoc "erlang-load-path" erlang-param))
-                              load-path))
-        (setq erlang-root-dir (cdr (assoc "erlang-root-dir" erlang-param)))
-        (setq exec-path (cons (cdr (assoc "erlang-exec-path" erlang-param)) exec-path))
-        (require 'erlang-start))
-      )
+     (when erlang-param
+       (setq load-path (cons (cdr (assoc "erlang-load-path" erlang-param))
+                             load-path))
+       (setq erlang-root-dir (cdr (assoc "erlang-root-dir" erlang-param)))
+       (setq exec-path (cons (cdr (assoc "erlang-exec-path" erlang-param)) exec-path))
+       (require 'erlang-start))
+     )
   )
 
 ;markdown
@@ -190,5 +185,17 @@
 (add-hook 'powershell-mode-hook
           (lambda ()
             (setq powershell-indent standard-indent)))
+
+;rust
+(add-to-list 'load-path (envhome "emacs.d/rust-mode"))
+(autoload 'rust-mode "rust-mode"
+  "Major mode for editing rust files" t)
+(add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode))
+
+;csharp
+(add-to-list 'load-path (envhome "emacs.d/csharp-mode"))
+(autoload 'csharp-mode "csharp-mode"
+  "Major mode for editing C# files" t)
+(add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-mode))
 
 (run-hooks 'after-init-hook)
