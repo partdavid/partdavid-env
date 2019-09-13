@@ -1,4 +1,3 @@
-; emacs -q -l /usr/local/env/jbrinkley/emacs
 (unless
   (getenv "ENV_HOME")
   (setenv "ENV_HOME"
