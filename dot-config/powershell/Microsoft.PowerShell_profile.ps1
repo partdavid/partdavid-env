@@ -1,3 +1,8 @@
+$local_modules = Join-Path (Split-Path -Path $profile) 'Modules'
+if (Test-Path -Path $local_modules) {
+  $Env:PSModulePath += ";$local_modules"
+}
+
 Import-Module posh-git
 Import-Module PSReadLine
 
@@ -52,7 +57,7 @@ exit
 
 .PARAMETER NewContext
 
-This is the name of the context (usually defined in ~/contexts.yaml) to
+This is the name of the context (usually defined in ~/.contexts.yaml) to
 switch to. It can be left blank, in which Set-CurrentContext will switch
 out of the current context but won't apply a new one. It also doesn't
 have to be defined in ~/contexts.yaml; but if it's not, Set-CurrentContext
@@ -89,6 +94,9 @@ Example ~/.contexts.yaml
     $contexts = @{}
   }
 
+  # Kind of hacky, this refers to something specific I have in
+  # utilities. Maybe there needs to be some kind of global entry/exit
+  # block to cover stuff like this.
   $PSDefaultParameterValues.Remove("Invoke-Restmethod:Headers")
 
   if ($Env:CURRENT_CONTEXT -ne $null) {
@@ -149,26 +157,23 @@ Function prompt {
   # Reset color, which can be messed up by Enable-GitColors
   # $Host.UI.RawUI.ForegroundColor = $GitPromptSettings.DefaultForegroundColor
 
-  # $chef_qualifier = "`u{}"
-  # $gcloud_qualifier = "`u{}"
-  # $aws_qualifier = "`u{}"
-  # $az_qualifier = "`u{}"
+  if ($IsWindows) {
+    $user = [Security.Principal.WindowsIdentity]::GetCurrent()
+    $me = $user.Name
+  } else {
+    $host_name = uname -n
+    $user_id = id -u
+    $user_name = $Env:USER
+    $me = "$host_name\$Env:USER"
+  }
 
-  $host_name = uname -n
-  $user_id = id -u
   $gitstatus = Get-GitStatus
-  # $chef_org = $Env:CHEF_ORG
-  # $aws_profile = $Env:AWS_PROFILE
-  # $gcloud_config = try {
-  #   Get-Content ~/.config/gcloud/active_config -Raw -ErrorAction stop
-  # }
-  # catch { $null }
 
   if ($Env:CURRENT_CONTEXT -ne $null) {
     Write-Host "$Env:CURRENT_CONTEXT " -ForegroundColor $global:context_color -NoNewLine
   }
 
-  Write-Host "$host_name\$Env:USER" -NoNewLine
+  Write-Host "$me" -NoNewLine
   if ($gitstatus -ne $null) {
     Write-Host " [" -NoNewLine
 
@@ -190,11 +195,21 @@ Function prompt {
   # here, because on Windows file permissions are more complicated. I haven't figured
   # out how to make this portable yet.
   Write-Host " " -NoNewLine
-  $owner_id = stat -f '%u' $pwd
-  if ($owner_id -eq $user_id) {
-    $color = "Green"
+
+  if ($IsWindows) {
+    $acl = Get-Acl $pwd
+    if ($acl.Owner -eq $user.Name) {
+      $color = "Green"
+    } else {
+      $color = "Cyan"
+    }
   } else {
-    $color = "Cyan"
+    $owner_id = stat -f '%u' $pwd
+    if ($owner_id -eq $user_id) {
+      $color = "Green"
+    } else {
+      $color = "Cyan"
+    }
   }
   $path = $pwd -replace [Regex]::Escape($HOME), "~"
   Write-Host -ForegroundColor $color -NoNewline $path
