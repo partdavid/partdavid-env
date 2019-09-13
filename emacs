@@ -186,4 +186,16 @@
           (lambda ()
             (setq powershell-indent standard-indent)))
 
+;rust
+(add-to-list 'load-path (envhome "emacs.d/rust-mode"))
+(autoload 'rust-mode "rust-mode"
+  "Major mode for editing rust files" t)
+(add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode))
+
+;csharp
+(add-to-list 'load-path (envhome "emacs.d/csharp-mode"))
+(autoload 'csharp-mode "csharp-mode"
+  "Major mode for editing C# files" t)
+(add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-mode))
+
 (run-hooks 'after-init-hook)
