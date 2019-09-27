@@ -9,6 +9,8 @@ Set-PSReadLineKeyHandler -Key 't' -Function NextHistory -ViMode Command
 Set-PSReadLineKeyHandler -Key 'n' -Function PreviousHistory -ViMode Command
 Set-PSReadLineKeyHandler -Key 's' -Function ForwardChar -ViMode Command
 
+# Something is still not working with globals setting as a substitute
+# for Set-AWSCredential -ProfileName <profile>
 Function Set-CurrentContext {
   <#
 .SYNOPSIS
@@ -111,7 +113,7 @@ Example ~/.contexts.yaml
 
     if ($contexts[$OldContext].globals -ne $null) {
       foreach ($var in $contexts[$OldContext].globals.keys) {
-        Remove-Variable -Name "global:$var" -errorAction ignore
+        Remove-Variable -Name $var -errorAction ignore -Scope global
       }
     }
 
@@ -140,7 +142,7 @@ Example ~/.contexts.yaml
 
       if ($contexts[$NewContext].globals -ne $null) {
         foreach ($var in $contexts[$NewContext].globals.keys) {
-          Set-Variable -Name "global:$var" -Value $contexts[$NewContext].globals[$var]
+          Set-Variable -Name $var -Value $contexts[$NewContext].globals[$var] -Scope global
         }
       }
       
@@ -231,3 +233,4 @@ Function Invoke-ChangeDirectoryWithHome {
   }
 }
 
+Set-Alias rn Rename-Item
