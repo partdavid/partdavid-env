@@ -5,6 +5,8 @@ if (Test-Path -Path $local_modules) {
 
 Import-Module posh-git
 Import-Module PSReadLine
+Import-Module powershell-yaml
+Import-Module AWSPowerShell.NetCore
 
 # Dvorak key mappings for vi command-line editing
 Set-PSReadLineOption -EditMode Vi
@@ -100,17 +102,27 @@ Example ~/.contexts.yaml
   $PSDefaultParameterValues.Remove("Invoke-Restmethod:Headers")
 
   if ($Env:CURRENT_CONTEXT -ne $null) {
+
     $OldContext = $Env:CURRENT_CONTEXT
     Remove-Item -Path Env:CURRENT_CONTEXT
-    if ($contexts[$OldContext].env -ne $null) {
-      foreach ($var in $contexts[$OldContext].env.keys) {
-        Remove-Item -Path Env:$var -errorAction ignore
-      }
-    }
 
-    if ($contexts[$OldContext].exit -ne $null) {
-      foreach ($cmd in $contexts[$OldContext].exit) {
-        Invoke-Expression -Command $cmd
+    if ($contexts[$OldContext] -ne $null) {
+      if ($contexts[$OldContext].env -ne $null) {
+        foreach ($var in $contexts[$OldContext].env.keys) {
+          Remove-Item -Path Env:$var -errorAction ignore
+        }
+      }
+
+      if ($contexts[$OldContext].globals -ne $null) {
+        foreach ($var in $contexts[$OldContext].globals.keys) {
+          Remove-Variable -Name $var -ErrorAction ignore -Scope global
+        }
+      }
+
+      if ($contexts[$OldContext].exit -ne $null) {
+        foreach ($cmd in $contexts[$OldContext].exit) {
+          Invoke-Expression -Command $cmd
+        }
       }
     }
   
@@ -128,7 +140,13 @@ Example ~/.contexts.yaml
       if ($contexts[$NewContext].env -ne $null) {
         foreach ($var in $contexts[$NewContext].env.keys) {
           Set-Content -Path Env:$var -Value $contexts[$NewContext].env[$var]
-          }
+        }
+      }
+
+      if ($contexts[$NewContext].globals -ne $null) {
+        foreach ($var in $contexts[$NewContext].globals.keys) {
+          Set-Variable -Name $var -Value $contexts[$NewContext].globals[$var] -ErrorAction ignore -Scope global
+        }
       }
       
       if ($contexts[$NewContext].entry -ne $null) {
@@ -226,8 +244,7 @@ Function Invoke-Emacs {
   )
 
 
-  # Not portable - MacOS location
-  & '/Applications/Emacs.app/Contents/MacOS/Emacs' -l '/Users/jeremy.brinkley/partdavid-env/emacs' @Remaining
+  & emacs -l "$Env:ENV_HOME/emacs" @Remaining
 }
 
 Set-Alias e Invoke-Emacs
