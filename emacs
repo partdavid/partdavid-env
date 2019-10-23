@@ -126,36 +126,6 @@
 (put 'cperl-indent-level 'safe-local-variable 'integerp)
 (put 'encoding 'safe-local-variable 'symbolp)
 
-;erlang
-; TODO - this section is dependent on an external command which runs on MacOS and Linux (for now)
-(if (not (string-equal system-type "windows-nt"))
-    (progn
-      (defun erlang-find ()
-        "Create alist of erlang parameters for erlang mode"
-        (let (
-              (erlangf (shell-command-to-string (envhome "emacs.d/erlang-find")))
-              )
-          (if (string-match-p "[Nn]o such" erlangf)
-              nil
-            (mapcar
-             (lambda (kv) (apply #'cons (split-string kv "=")))
-             (split-string
-              (shell-command-to-string (envhome "emacs.d/erlang-find"))))
-            )
-          )
-        )
-
-      (setq erlang-param (erlang-find))
-
-      (when erlang-param
-        (setq load-path (cons (cdr (assoc "erlang-load-path" erlang-param))
-                              load-path))
-        (setq erlang-root-dir (cdr (assoc "erlang-root-dir" erlang-param)))
-        (setq exec-path (cons (cdr (assoc "erlang-exec-path" erlang-param)) exec-path))
-        (require 'erlang-start))
-      )
-  )
-
 ;markdown
 (add-to-list 'load-path (envhome "emacs.d/markdown-mode"))
 (autoload 'markdown-mode "markdown-mode"
