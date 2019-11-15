@@ -7,6 +7,7 @@ Import-Module posh-git
 Import-Module PSReadLine
 Import-Module powershell-yaml
 Import-Module AWSPowerShell.NetCore
+Import-Module powershell-yaml
 
 # Dvorak key mappings for vi command-line editing
 Set-PSReadLineOption -EditMode Vi
@@ -15,8 +16,10 @@ Set-PSReadLineKeyHandler -Key 't' -Function NextHistory -ViMode Command
 Set-PSReadLineKeyHandler -Key 'n' -Function PreviousHistory -ViMode Command
 Set-PSReadLineKeyHandler -Key 's' -Function ForwardChar -ViMode Command
 
-# Something is still not working with globals setting as a substitute
-# for Set-AWSCredential -ProfileName <profile>
+# Bash-style tab completion
+Set-PSReadlineKeyHandler -Key Tab -Function Complete
+
+
 Function Set-CurrentContext {
   <#
 .SYNOPSIS
@@ -242,3 +245,64 @@ Function prompt {
 }
 
 Set-Alias rn Rename-Item
+
+# Hack until I add a .ps1 version for rbenv/pyenv shell support
+Remove-Alias -Name rbenv -ErrorAction ignore
+$RBENV_EXE = (Get-Command rbenv -ErrorAction ignore).source
+
+Remove-Alias -Name pyenv -ErrorAction ignore
+$PYENV_EXE = (Get-Command pyenv -ErrorAction ignore).source
+
+Function Invoke-Rbenv {
+  [CmdletBinding()]
+  Param(
+    [parameter(mandatory=$false, position=0, ValueFromRemainingArguments=$true)] $Remaining
+  )
+
+  if ($Remaining[0] -in 'shell') {
+    if ($Remaining[1]) {
+      if ($Remaining[1] -match '--unset') {
+        Remove-Item -Path Env:RBENV_VERSION -ErrorAction ignore
+      } else {
+        $Env:RBENV_VERSION = $Remaining[1]
+      }
+    } else {
+      if (Test-Path Env:RBENV_VERSION) {
+        Write-Output $Env:RBENV_VERSION
+      } else {
+        Write-Output "rbenv: no shell version configured for this session"
+      }
+    }
+  } else {
+    & $RBENV_EXE @Remaining
+  }
+}
+
+# TODO: implement this kind of thing as a closure
+Function Invoke-Pyenv {
+  [CmdletBinding()]
+  Param(
+    [parameter(mandatory=$false, position=0, ValueFromRemainingArguments=$true)] $Remaining
+  )
+
+  if ($Remaining[0] -in 'shell') {
+    if ($Remaining[1]) {
+      if ($Remaining[1] -match '--unset') {
+        Remove-Item -Path Env:PYENV_VERSION -ErrorAction ignore
+      } else {
+        $Env:PYENV_VERSION = $Remaining[1]
+      }
+    } else {
+      if (Test-Path Env:PYENV_VERSION) {
+        Write-Output $Env:PYENV_VERSION
+      } else {
+        Write-Output "pyenv: no shell version configured for this session"
+      }
+    }
+  } else {
+    & $PYENV_EXE @Remaining
+  }
+}
+
+Set-Alias -Name rbenv -Value Invoke-Rbenv
+Set-Alias -Name pyenv -Value Invoke-Pyenv
