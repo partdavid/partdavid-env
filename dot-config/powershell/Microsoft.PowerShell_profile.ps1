@@ -15,7 +15,8 @@ Set-PSReadLineKeyHandler -Key 't' -Function NextHistory -ViMode Command
 Set-PSReadLineKeyHandler -Key 'n' -Function PreviousHistory -ViMode Command
 Set-PSReadLineKeyHandler -Key 's' -Function ForwardChar -ViMode Command
 
-
+# Something is still not working with globals setting as a substitute
+# for Set-AWSCredential -ProfileName <profile>
 Function Set-CurrentContext {
   <#
 .SYNOPSIS
@@ -46,7 +47,13 @@ env
 
   A mapping of environment variables to values. Set-CurrentContext will set
   each environment variable to the given value. When switching out of the
-  environment, Set-CurrentContext will remove the variables from the environment.
+  context, Set-CurrentContext will remove the variables from the environment.
+
+globals
+
+  A mapping of global variable names to values. Set-CurrentContext will set
+  each global variable to the given value. When switching out of the
+  context, Set-CurrentContext will remove the global variables.
 
 entry
 
@@ -54,6 +61,7 @@ entry
   Invoke-Expression when switching into the context.
 
 exit
+
   A sequence of strings, which will be evaluated as commands using
   Invoke-Expression when switching out of the context.
 
@@ -79,6 +87,8 @@ Example ~/.contexts.yaml
     color: red
     env:
       AWS_PROFILE: contoso-production
+    globals:
+      StoredAWSCredential: contoso-production
     entry:
       - kubectl use-context web-cluster-1
 
@@ -113,16 +123,15 @@ Example ~/.contexts.yaml
         }
       }
 
-      if ($contexts[$OldContext].globals -ne $null) {
-        foreach ($var in $contexts[$OldContext].globals.keys) {
-          Remove-Variable -Name $var -ErrorAction ignore -Scope global
-        }
+    if ($contexts[$OldContext].globals -ne $null) {
+      foreach ($var in $contexts[$OldContext].globals.keys) {
+        Remove-Variable -Name $var -errorAction ignore -Scope global
       }
+    }
 
-      if ($contexts[$OldContext].exit -ne $null) {
-        foreach ($cmd in $contexts[$OldContext].exit) {
-          Invoke-Expression -Command $cmd
-        }
+    if ($contexts[$OldContext].exit -ne $null) {
+      foreach ($cmd in $contexts[$OldContext].exit) {
+        Invoke-Expression -Command $cmd
       }
     }
   
@@ -145,7 +154,7 @@ Example ~/.contexts.yaml
 
       if ($contexts[$NewContext].globals -ne $null) {
         foreach ($var in $contexts[$NewContext].globals.keys) {
-          Set-Variable -Name $var -Value $contexts[$NewContext].globals[$var] -ErrorAction ignore -Scope global
+          Set-Variable -Name $var -Value $contexts[$NewContext].globals[$var] -Scope global
         }
       }
       
@@ -157,7 +166,6 @@ Example ~/.contexts.yaml
     
     }
   }
-
 }
 
 Set-Alias use Set-CurrentContext
@@ -209,9 +217,6 @@ Function prompt {
     Write-Host "]" -NoNewLine
   }
 
-  # For consistency with the Windows-based profile, I'm just doing owner/not-owner
-  # here, because on Windows file permissions are more complicated. I haven't figured
-  # out how to make this portable yet.
   Write-Host " " -NoNewLine
 
   if ($IsWindows) {
@@ -236,29 +241,4 @@ Function prompt {
   return "> "
 }
 
-Function Invoke-Emacs {
-  [CmdletBinding()]
-  Param
-  (
-    [parameter(mandatory=$false, position=0, ValueFromRemainingArguments=$true)]$Remaining
-  )
-
-
-  & emacs -l "$Env:ENV_HOME/emacs" @Remaining
-}
-
-Set-Alias e Invoke-Emacs
-
-Function Invoke-ChangeDirectoryWithHome {
-  [CmdletBinding()]
-  Param(
-    [parameter(mandatory=$false, position=0, ValueFromRemainingArguments=$true)] $Remaining
-  )
-
-  if ($Remaining) {
-    & Set-Location @Remaining
-  } else {
-    & Set-Location $HOME
-  }
-}
-
+Set-Alias rn Rename-Item
