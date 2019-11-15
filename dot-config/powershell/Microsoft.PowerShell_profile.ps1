@@ -1,5 +1,6 @@
 Import-Module posh-git
 Import-Module PSReadLine
+Import-Module AWSPowerShell.NetCore
 
 # Dvorak key mappings for vi command-line editing
 Set-PSReadLineOption -EditMode Vi
@@ -8,7 +9,8 @@ Set-PSReadLineKeyHandler -Key 't' -Function NextHistory -ViMode Command
 Set-PSReadLineKeyHandler -Key 'n' -Function PreviousHistory -ViMode Command
 Set-PSReadLineKeyHandler -Key 's' -Function ForwardChar -ViMode Command
 
-
+# Something is still not working with globals setting as a substitute
+# for Set-AWSCredential -ProfileName <profile>
 Function Set-CurrentContext {
   <#
 .SYNOPSIS
@@ -39,7 +41,13 @@ env
 
   A mapping of environment variables to values. Set-CurrentContext will set
   each environment variable to the given value. When switching out of the
-  environment, Set-CurrentContext will remove the variables from the environment.
+  context, Set-CurrentContext will remove the variables from the environment.
+
+globals
+
+  A mapping of global variable names to values. Set-CurrentContext will set
+  each global variable to the given value. When switching out of the
+  context, Set-CurrentContext will remove the global variables.
 
 entry
 
@@ -47,6 +55,7 @@ entry
   Invoke-Expression when switching into the context.
 
 exit
+
   A sequence of strings, which will be evaluated as commands using
   Invoke-Expression when switching out of the context.
 
@@ -72,6 +81,8 @@ Example ~/.contexts.yaml
     color: red
     env:
       AWS_PROFILE: contoso-production
+    globals:
+      StoredAWSCredential: contoso-production
     entry:
       - kubectl use-context web-cluster-1
 
@@ -100,6 +111,12 @@ Example ~/.contexts.yaml
       }
     }
 
+    if ($contexts[$OldContext].globals -ne $null) {
+      foreach ($var in $contexts[$OldContext].globals.keys) {
+        Remove-Variable -Name $var -errorAction ignore -Scope global
+      }
+    }
+
     if ($contexts[$OldContext].exit -ne $null) {
       foreach ($cmd in $contexts[$OldContext].exit) {
         Invoke-Expression -Command $cmd
@@ -120,7 +137,13 @@ Example ~/.contexts.yaml
       if ($contexts[$NewContext].env -ne $null) {
         foreach ($var in $contexts[$NewContext].env.keys) {
           Set-Content -Path Env:$var -Value $contexts[$NewContext].env[$var]
-          }
+        }
+      }
+
+      if ($contexts[$NewContext].globals -ne $null) {
+        foreach ($var in $contexts[$NewContext].globals.keys) {
+          Set-Variable -Name $var -Value $contexts[$NewContext].globals[$var] -Scope global
+        }
       }
       
       if ($contexts[$NewContext].entry -ne $null) {
@@ -131,7 +154,6 @@ Example ~/.contexts.yaml
     
     }
   }
-
 }
 
 Set-Alias use Set-CurrentContext
@@ -146,23 +168,9 @@ Function prompt {
   $lastsuccess = $?
   $realLASTEXITCODE = $LASTEXITCODE
 
-  # Reset color, which can be messed up by Enable-GitColors
-  # $Host.UI.RawUI.ForegroundColor = $GitPromptSettings.DefaultForegroundColor
-
-  # $chef_qualifier = "`u{}"
-  # $gcloud_qualifier = "`u{}"
-  # $aws_qualifier = "`u{}"
-  # $az_qualifier = "`u{}"
-
   $host_name = uname -n
   $user_id = id -u
   $gitstatus = Get-GitStatus
-  # $chef_org = $Env:CHEF_ORG
-  # $aws_profile = $Env:AWS_PROFILE
-  # $gcloud_config = try {
-  #   Get-Content ~/.config/gcloud/active_config -Raw -ErrorAction stop
-  # }
-  # catch { $null }
 
   if ($Env:CURRENT_CONTEXT -ne $null) {
     Write-Host "$Env:CURRENT_CONTEXT " -ForegroundColor $global:context_color -NoNewLine
@@ -186,9 +194,6 @@ Function prompt {
     Write-Host "]" -NoNewLine
   }
 
-  # For consistency with the Windows-based profile, I'm just doing owner/not-owner
-  # here, because on Windows file permissions are more complicated. I haven't figured
-  # out how to make this portable yet.
   Write-Host " " -NoNewLine
   $owner_id = stat -f '%u' $pwd
   if ($owner_id -eq $user_id) {
@@ -210,9 +215,7 @@ Function Invoke-Emacs {
     [parameter(mandatory=$false, position=0, ValueFromRemainingArguments=$true)]$Remaining
   )
 
-
-  # Not portable - MacOS location
-  & '/Applications/Emacs.app/Contents/MacOS/Emacs' -l '/Users/jeremy.brinkley/partdavid-env/emacs' @Remaining
+  & $Env:EMACS -l $Env:EMACS_CONFIG @Remaining
 }
 
 Set-Alias e Invoke-Emacs
@@ -230,3 +233,4 @@ Function Invoke-ChangeDirectoryWithHome {
   }
 }
 
+Set-Alias rn Rename-Item
