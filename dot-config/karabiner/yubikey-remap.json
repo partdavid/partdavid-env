@@ -1,0 +1,782 @@
+[
+  {
+    "description": "Map Dvorak p to Qwerty r for Yubikey",
+    "manipulators": [
+      {
+        "type": "basic",
+        "from": {
+          "key_code": "p"
+        },
+        "to": {
+          "key_code": "r"
+        },
+        "conditions": [
+          {
+            "type": "device_if",
+            "identifiers": [
+              {
+                "product_id": 1031,
+                "vendor_id": 4176,
+                "description": "Yubico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "description": "Map Dvorak y to Qwerty t for Yubikey",
+    "manipulators": [
+      {
+        "type": "basic",
+        "from": {
+          "key_code": "y"
+        },
+        "to": {
+          "key_code": "t"
+        },
+        "conditions": [
+          {
+            "type": "device_if",
+            "identifiers": [
+              {
+                "product_id": 1031,
+                "vendor_id": 4176,
+                "description": "Yubico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "description": "Map Dvorak f to Qwerty y for Yubikey",
+    "manipulators": [
+      {
+        "type": "basic",
+        "from": {
+          "key_code": "f"
+        },
+        "to": {
+          "key_code": "y"
+        },
+        "conditions": [
+          {
+            "type": "device_if",
+            "identifiers": [
+              {
+                "product_id": 1031,
+                "vendor_id": 4176,
+                "description": "Yubico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "description": "Map Dvorak g to Qwerty u for Yubikey",
+    "manipulators": [
+      {
+        "type": "basic",
+        "from": {
+          "key_code": "g"
+        },
+        "to": {
+          "key_code": "u"
+        },
+        "conditions": [
+          {
+            "type": "device_if",
+            "identifiers": [
+              {
+                "product_id": 1031,
+                "vendor_id": 4176,
+                "description": "Yubico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "description": "Map Dvorak c to Qwerty i for Yubikey",
+    "manipulators": [
+      {
+        "type": "basic",
+        "from": {
+          "key_code": "c"
+        },
+        "to": {
+          "key_code": "i"
+        },
+        "conditions": [
+          {
+            "type": "device_if",
+            "identifiers": [
+              {
+                "product_id": 1031,
+                "vendor_id": 4176,
+                "description": "Yubico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "description": "Map Dvorak r to Qwerty o for Yubikey",
+    "manipulators": [
+      {
+        "type": "basic",
+        "from": {
+          "key_code": "r"
+        },
+        "to": {
+          "key_code": "o"
+        },
+        "conditions": [
+          {
+            "type": "device_if",
+            "identifiers": [
+              {
+                "product_id": 1031,
+                "vendor_id": 4176,
+                "description": "Yubico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "description": "Map Dvorak l to Qwerty p for Yubikey",
+    "manipulators": [
+      {
+        "type": "basic",
+        "from": {
+          "key_code": "l"
+        },
+        "to": {
+          "key_code": "p"
+        },
+        "conditions": [
+          {
+            "type": "device_if",
+            "identifiers": [
+              {
+                "product_id": 1031,
+                "vendor_id": 4176,
+                "description": "Yubico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "description": "Map Dvorak o to Qwerty s for Yubikey",
+    "manipulators": [
+      {
+        "type": "basic",
+        "from": {
+          "key_code": "o"
+        },
+        "to": {
+          "key_code": "s"
+        },
+        "conditions": [
+          {
+            "type": "device_if",
+            "identifiers": [
+              {
+                "product_id": 1031,
+                "vendor_id": 4176,
+                "description": "Yubico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "description": "Map Dvorak e to Qwerty d for Yubikey",
+    "manipulators": [
+      {
+        "type": "basic",
+        "from": {
+          "key_code": "e"
+        },
+        "to": {
+          "key_code": "d"
+        },
+        "conditions": [
+          {
+            "type": "device_if",
+            "identifiers": [
+              {
+                "product_id": 1031,
+                "vendor_id": 4176,
+                "description": "Yubico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "description": "Map Dvorak u to Qwerty f for Yubikey",
+    "manipulators": [
+      {
+        "type": "basic",
+        "from": {
+          "key_code": "u"
+        },
+        "to": {
+          "key_code": "f"
+        },
+        "conditions": [
+          {
+            "type": "device_if",
+            "identifiers": [
+              {
+                "product_id": 1031,
+                "vendor_id": 4176,
+                "description": "Yubico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "description": "Map Dvorak i to Qwerty g for Yubikey",
+    "manipulators": [
+      {
+        "type": "basic",
+        "from": {
+          "key_code": "i"
+        },
+        "to": {
+          "key_code": "g"
+        },
+        "conditions": [
+          {
+            "type": "device_if",
+            "identifiers": [
+              {
+                "product_id": 1031,
+                "vendor_id": 4176,
+                "description": "Yubico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "description": "Map Dvorak d to Qwerty h for Yubikey",
+    "manipulators": [
+      {
+        "type": "basic",
+        "from": {
+          "key_code": "d"
+        },
+        "to": {
+          "key_code": "h"
+        },
+        "conditions": [
+          {
+            "type": "device_if",
+            "identifiers": [
+              {
+                "product_id": 1031,
+                "vendor_id": 4176,
+                "description": "Yubico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "description": "Map Dvorak h to Qwerty j for Yubikey",
+    "manipulators": [
+      {
+        "type": "basic",
+        "from": {
+          "key_code": "h"
+        },
+        "to": {
+          "key_code": "j"
+        },
+        "conditions": [
+          {
+            "type": "device_if",
+            "identifiers": [
+              {
+                "product_id": 1031,
+                "vendor_id": 4176,
+                "description": "Yubico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "description": "Map Dvorak t to Qwerty k for Yubikey",
+    "manipulators": [
+      {
+        "type": "basic",
+        "from": {
+          "key_code": "t"
+        },
+        "to": {
+          "key_code": "k"
+        },
+        "conditions": [
+          {
+            "type": "device_if",
+            "identifiers": [
+              {
+                "product_id": 1031,
+                "vendor_id": 4176,
+                "description": "Yubico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "description": "Map Dvorak n to Qwerty l for Yubikey",
+    "manipulators": [
+      {
+        "type": "basic",
+        "from": {
+          "key_code": "n"
+        },
+        "to": {
+          "key_code": "l"
+        },
+        "conditions": [
+          {
+            "type": "device_if",
+            "identifiers": [
+              {
+                "product_id": 1031,
+                "vendor_id": 4176,
+                "description": "Yubico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "description": "Map Dvorak q to Qwerty x for Yubikey",
+    "manipulators": [
+      {
+        "type": "basic",
+        "from": {
+          "key_code": "q"
+        },
+        "to": {
+          "key_code": "x"
+        },
+        "conditions": [
+          {
+            "type": "device_if",
+            "identifiers": [
+              {
+                "product_id": 1031,
+                "vendor_id": 4176,
+                "description": "Yubico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "description": "Map Dvorak j to Qwerty c for Yubikey",
+    "manipulators": [
+      {
+        "type": "basic",
+        "from": {
+          "key_code": "j"
+        },
+        "to": {
+          "key_code": "c"
+        },
+        "conditions": [
+          {
+            "type": "device_if",
+            "identifiers": [
+              {
+                "product_id": 1031,
+                "vendor_id": 4176,
+                "description": "Yubico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "description": "Map Dvorak k to Qwerty v for Yubikey",
+    "manipulators": [
+      {
+        "type": "basic",
+        "from": {
+          "key_code": "k"
+        },
+        "to": {
+          "key_code": "v"
+        },
+        "conditions": [
+          {
+            "type": "device_if",
+            "identifiers": [
+              {
+                "product_id": 1031,
+                "vendor_id": 4176,
+                "description": "Yubico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "description": "Map Dvorak x to Qwerty b for Yubikey",
+    "manipulators": [
+      {
+        "type": "basic",
+        "from": {
+          "key_code": "x"
+        },
+        "to": {
+          "key_code": "b"
+        },
+        "conditions": [
+          {
+            "type": "device_if",
+            "identifiers": [
+              {
+                "product_id": 1031,
+                "vendor_id": 4176,
+                "description": "Yubico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "description": "Map Dvorak b to Qwerty n for Yubikey",
+    "manipulators": [
+      {
+        "type": "basic",
+        "from": {
+          "key_code": "b"
+        },
+        "to": {
+          "key_code": "n"
+        },
+        "conditions": [
+          {
+            "type": "device_if",
+            "identifiers": [
+              {
+                "product_id": 1031,
+                "vendor_id": 4176,
+                "description": "Yubico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "description": "Map Dvorak w to Qwerty comma for Yubikey",
+    "manipulators": [
+      {
+        "type": "basic",
+        "from": {
+          "key_code": "w"
+        },
+        "to": {
+          "key_code": "comma"
+        },
+        "conditions": [
+          {
+            "type": "device_if",
+            "identifiers": [
+              {
+                "product_id": 1031,
+                "vendor_id": 4176,
+                "description": "Yubico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "description": "Map Dvorak v to Qwerty period for Yubikey",
+    "manipulators": [
+      {
+        "type": "basic",
+        "from": {
+          "key_code": "v"
+        },
+        "to": {
+          "key_code": "period"
+        },
+        "conditions": [
+          {
+            "type": "device_if",
+            "identifiers": [
+              {
+                "product_id": 1031,
+                "vendor_id": 4176,
+                "description": "Yubico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "description": "Map Dvorak s to Qwerty semicolon for Yubikey",
+    "manipulators": [
+      {
+        "type": "basic",
+        "from": {
+          "key_code": "s"
+        },
+        "to": {
+          "key_code": "semicolon"
+        },
+        "conditions": [
+          {
+            "type": "device_if",
+            "identifiers": [
+              {
+                "product_id": 1031,
+                "vendor_id": 4176,
+                "description": "Yubico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "description": "Map Dvorak period to Qwerty e for Yubikey",
+    "manipulators": [
+      {
+        "type": "basic",
+        "from": {
+          "key_code": "period"
+        },
+        "to": {
+          "key_code": "e"
+        },
+        "conditions": [
+          {
+            "type": "device_if",
+            "identifiers": [
+              {
+                "product_id": 1031,
+                "vendor_id": 4176,
+                "description": "Yubico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "description": "Map Dvorak semicolon to Qwerty z for Yubikey",
+    "manipulators": [
+      {
+        "type": "basic",
+        "from": {
+          "key_code": "semicolon"
+        },
+        "to": {
+          "key_code": "z"
+        },
+        "conditions": [
+          {
+            "type": "device_if",
+            "identifiers": [
+              {
+                "product_id": 1031,
+                "vendor_id": 4176,
+                "description": "Yubico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "description": "Map Dvorak quote to Qwerty q for Yubikey",
+    "manipulators": [
+      {
+        "type": "basic",
+        "from": {
+          "key_code": "quote"
+        },
+        "to": {
+          "key_code": "q"
+        },
+        "conditions": [
+          {
+            "type": "device_if",
+            "identifiers": [
+              {
+                "product_id": 1031,
+                "vendor_id": 4176,
+                "description": "Yubico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "description": "Map Dvorak comma to Qwerty w for Yubikey",
+    "manipulators": [
+      {
+        "type": "basic",
+        "from": {
+          "key_code": "comma"
+        },
+        "to": {
+          "key_code": "w"
+        },
+        "conditions": [
+          {
+            "type": "device_if",
+            "identifiers": [
+              {
+                "product_id": 1031,
+                "vendor_id": 4176,
+                "description": "Yubico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "description": "Map Dvorak open_bracket to Qwerty hyphen for Yubikey",
+    "manipulators": [
+      {
+        "type": "basic",
+        "from": {
+          "key_code": "open_bracket"
+        },
+        "to": {
+          "key_code": "hyphen"
+        },
+        "conditions": [
+          {
+            "type": "device_if",
+            "identifiers": [
+              {
+                "product_id": 1031,
+                "vendor_id": 4176,
+                "description": "Yubico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "description": "Map Dvorak close_bracket to Qwerty equal_sign for Yubikey",
+    "manipulators": [
+      {
+        "type": "basic",
+        "from": {
+          "key_code": "close_bracket"
+        },
+        "to": {
+          "key_code": "equal_sign"
+        },
+        "conditions": [
+          {
+            "type": "device_if",
+            "identifiers": [
+              {
+                "product_id": 1031,
+                "vendor_id": 4176,
+                "description": "Yubico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "description": "Map Dvorak hyphen to Qwerty quote for Yubikey",
+    "manipulators": [
+      {
+        "type": "basic",
+        "from": {
+          "key_code": "hyphen"
+        },
+        "to": {
+          "key_code": "quote"
+        },
+        "conditions": [
+          {
+            "type": "device_if",
+            "identifiers": [
+              {
+                "product_id": 1031,
+                "vendor_id": 4176,
+                "description": "Yubico"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
