@@ -1,55 +1,53 @@
 Environment Files
 =================
 
-This is my specialized set of environment files. They're designed to
-live somewhere outside a user's home directory, so if "I" am someone
-else or exist in multiple accounts or something like Chef or Puppet
-likes screwing with my account, the environment lives on.
+This is my specialized set of environment files. It's broken into some
+pieces so other users can try out some of them. I've switched to
+Powershell, so this includes both bash and Powershell profiles.
 
-It's broken into some pieces so other users can try out some of them.
-
-I worked hard to try to separate the editor environment files out of
-the home directory. My editor backups are kept in `~/.backups` but my
-editor dot-files are here. I have a weird editor setup so I doubt
-anyone really wants to share (I use a Dvorak keyboard layout, prefer
-Emacs with Viper (vi keybindings) but can use Vim in a pinch). Using
-Dvorak with vi keys means I have shifted the hand position of cursor
-controls to the left by one position. That's why `viper`, `vimrc` and
-`inputrc` all remap `hjkl` to `htns`.
+I have a weird editor setup so I doubt anyone really wants to share (I
+use a Dvorak keyboard layout, prefer Emacs with Viper (vi keybindings)
+but can use Vim in a pinch). Using Dvorak with vi keys means I have
+shifted the hand position of cursor controls to the left by one
+position. That's why `viper`, `vimrc` and `inputrc` all remap `hjkl`
+to `htns`.
 
 Files
 -----
 
+`Microsoft.PowerShell_profile.ps1`
+    My powershell profile. This is not modularized, so it has both
+    preference-setting as well as custom prompt and utility function
+    code. Namely, the `use` command to set your "context" and some
+    hacks around the lack of a proper shell function implementation
+    in `rbenv` and `pyenv`.
+
 `bashrc`
-    This ties all the bits together by setting things like the
+    This ties all the bashbits together by setting things like the
     **ENV_HOME** variable, **EDITOR** and things like that. It picks
     up customizations in the home directory, sets the prompt,
     etc. It's what you really don't want to source unless you're in
     for the full ride. Note that `bash_profile` is just a symlink
     to `bashrc`.
 
-`emacs`
-    The replacement for `~/.emacs`. It understands the **ENV_HOME**
-    setting to find all its subordinate files in `emacs.d`, which is
-    the replacement for `~/.emacs.d`. The `bin/editor` file knows how
-    to invoke emacs to pick up this file.
+`dot-emacs`
+    My `.emacs` file.
 
-`vimrc`
-    The replacement for `~/.vimrc`. I don't use vim a whole lot
-    so this is minimal (just the cursor keys and stuff).
+`dot-vimrc`
+    My `.vimrc` file. I use mainly emacs, so this is minimal (just the
+    cursor keys and stuff).
 
-`inputrc`
+`dot-inputrc`
     The readline config that remaps cursor keys for vi-based line
     editing in any program using libreadline.
 
-`viper`
+`dot-viper`
     A small config for VIPER, the Emacs package that emulates Vi.
 
 `bin/editor`
     A convenience script that has the correct command lines for
     invoking Emacs (if installed) and Vim with the right arguments
-    to make them pick up the replacement dot-files. I have an
-    alias `e` which is aliased to this command.
+    to make them pick up the replacement dot-files.
 
 `bin/sup`
     A convenience wrapper for `sudo` that runs a command with sudo if provided;
@@ -62,25 +60,20 @@ Files
 Installation
 ------------
 
-Basically, take these files and put them in `/usr/local/env/<username>`,
-which is the default ENV_HOME, and make the following symlinks, depending
-what you want to do::
+Install the Powershell environment by doing `bin/installenv`.
 
-  export ENV_HOME=/usr/local/env/$USER
-  for file in bashrc bash_profile inputrc vimrc emacs
-  do
-    ln -sf $ENV_HOME/$file ~/.$file
-  done
+Install the bash environment by copying the files to the appropriate
+locations.
 
-Then do `. .bashrc` and you've gotten started.
 
 Use/Features
 ------------
 
 The following convenience aliases are provided:
 
-* **e** - For `$ENV_HOME/bin/editor`
-* **r** - For `. ~/.bashrc` to re-read environment files
+* **r** - To re-read environment files
+
+For **bash**:
 
 You can provide various local customizations to the environment (for
 example, if you want your enviroment to differ between different
