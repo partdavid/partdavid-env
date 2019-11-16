@@ -126,18 +126,18 @@ Example ~/.contexts.yaml
         }
       }
 
-    if ($contexts[$OldContext].globals -ne $null) {
-      foreach ($var in $contexts[$OldContext].globals.keys) {
-        Remove-Variable -Name $var -errorAction ignore -Scope global
+      if ($contexts[$OldContext].globals -ne $null) {
+        foreach ($var in $contexts[$OldContext].globals.keys) {
+          Remove-Variable -Name $var -errorAction ignore -Scope global
+        }
       }
-    }
 
-    if ($contexts[$OldContext].exit -ne $null) {
-      foreach ($cmd in $contexts[$OldContext].exit) {
-        Invoke-Expression -Command $cmd
+      if ($contexts[$OldContext].exit -ne $null) {
+        foreach ($cmd in $contexts[$OldContext].exit) {
+          Invoke-Expression -Command $cmd
+        }
       }
     }
-  
   }
 
   if ($NewContext -ne $null) {
@@ -306,3 +306,5 @@ Function Invoke-Pyenv {
 
 Set-Alias -Name rbenv -Value Invoke-Rbenv
 Set-Alias -Name pyenv -Value Invoke-Pyenv
+
+$Env:PATH += ";$HOME/bin"
