@@ -259,7 +259,7 @@ Function Invoke-Rbenv {
     [parameter(mandatory=$false, position=0, ValueFromRemainingArguments=$true)] $Remaining
   )
 
-  if ($Remaining[0] -in 'shell') {
+  if ($Remaining -ne $Null -and $Remaining[0] -in 'shell') {
     if ($Remaining[1]) {
       if ($Remaining[1] -match '--unset') {
         Remove-Item -Path Env:RBENV_VERSION -ErrorAction ignore
@@ -285,7 +285,7 @@ Function Invoke-Pyenv {
     [parameter(mandatory=$false, position=0, ValueFromRemainingArguments=$true)] $Remaining
   )
 
-  if ($Remaining[0] -in 'shell') {
+  if ($Remaining -ne $Null -and $Remaining[0] -in 'shell') {
     if ($Remaining[1]) {
       if ($Remaining[1] -match '--unset') {
         Remove-Item -Path Env:PYENV_VERSION -ErrorAction ignore
@@ -307,4 +307,3 @@ Function Invoke-Pyenv {
 Set-Alias -Name rbenv -Value Invoke-Rbenv
 Set-Alias -Name pyenv -Value Invoke-Pyenv
 
-$Env:PATH += ";$HOME/bin"
