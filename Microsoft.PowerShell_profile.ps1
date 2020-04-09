@@ -19,6 +19,8 @@ Set-PSReadLineKeyHandler -Key 's' -Function ForwardChar -ViMode Command
 # Bash-style tab completion
 Set-PSReadlineKeyHandler -Key Tab -Function Complete
 
+# Remove a few kinda-gross aliases
+Remove-Alias diff -Force -ErrorAction ignore
 
 Function Set-CurrentContext {
   <#

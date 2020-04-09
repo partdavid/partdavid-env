@@ -11,8 +11,13 @@ function install-object {
 
   foreach ($from in @($Remaining)) {
     $to = Join-Path -Path $Destination -ChildPath ($from -replace 'dot-','.')
+    $destdir = Split-Path $to
 
     Write-Host "Copying $from -> $to"
+
+    if (-not TestPath -Path $destdir) {
+      New-Item -ItemType Directory -Force -Path $destdir
+    }
 
     if (Test-Path -PathType Container -Path $from) {
       Remove-Item -Path $to -Recurse -Force -ErrorAction ignore
@@ -29,7 +34,7 @@ function install-object {
 
 if ($IsWindows) {
   $emacs_home = "${HOME}/AppData/Roaming"
-  $powershell_config_dir = "${HOME}/Documents"
+  $powershell_config_dir = "${HOME}/Documents/PowerShell"
 } else {
   $emacs_home = "${HOME}"
   $powershell_config_dir = "${HOME}.config/powershell"
