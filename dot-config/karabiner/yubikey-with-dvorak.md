@@ -69,3 +69,28 @@ remaps in [yubikey-remap.json](yubikey-remap.json), run
 result as the value of the `rules` key in the correct
 `.profiles.complex_modifications` section of your `karabiner.json`.
 
+## My Yubikey
+
+This is part of the output from `system_profiler SPUSBDataType`:
+
+```
+    USB 3.0 Bus:
+
+      Host Controller Driver: AppleUSBXHCISPTLP
+      PCI Device ID: 0x9d2f
+      PCI Revision ID: 0x0021
+      PCI Vendor ID: 0x8086
+
+        Yubikey 4 OTP+U2F+CCID:
+
+          Product ID: 0x0407
+          Vendor ID: 0x1050
+          Version: 4.37
+          Speed: Up to 12 Mb/s
+          Manufacturer: Yubico
+          Location ID: 0x14400000 / 2
+          Current Available (mA): 500
+          Current Required (mA): 30
+          Extra Operating Current (mA): 0
+ ```
+

@@ -1,6 +1,5 @@
 #!bash
-export ENV_HOME=${ENV_HOME:-$HOME/partdavid-env}
-export INPUTRC=$ENV_HOME/inputrc
+export INPUTRC=$ENV_HOME/dot-inputrc
 export PATH=$HOME/bin:$ENV_HOME/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
 if [ -x $ENV_HOME/bin/editor ]
 then
