@@ -19,8 +19,6 @@ Set-PSReadLineKeyHandler -Key 's' -Function ForwardChar -ViMode Command
 # Bash-style tab completion
 Set-PSReadlineKeyHandler -Key Tab -Function Complete
 
-# Remove a few kinda-gross aliases
-Remove-Alias diff -Force -ErrorAction ignore
 
 Function Set-CurrentContext {
   <#
@@ -188,6 +186,9 @@ Function prompt {
   # Reset color, which can be messed up by Enable-GitColors
   # $Host.UI.RawUI.ForegroundColor = $GitPromptSettings.DefaultForegroundColor
 
+  $width = (Get-Host).UI.RawUI.WindowSize.Width
+  $position = 0
+
   if ($IsWindows) {
     $user = [Security.Principal.WindowsIdentity]::GetCurrent()
     $me = $user.Name
@@ -201,12 +202,16 @@ Function prompt {
   $gitstatus = Get-GitStatus
 
   if ($Env:CURRENT_CONTEXT -ne $null) {
+    $position += "$Env:CURRENT_CONTEXT ".length
     Write-Host "$Env:CURRENT_CONTEXT " -ForegroundColor $global:context_color -NoNewLine
   }
 
   Write-Host "$me" -NoNewLine
+  $position += $me.length
+
   if ($gitstatus -ne $null) {
     Write-Host " [" -NoNewLine
+    $position += " [".length
 
     # Git
     if ($gitstatus -ne $null) {
@@ -217,12 +222,13 @@ Function prompt {
         $color = "Green"
       }
       Write-Host $gitstatus.Branch -ForegroundColor $color -NoNewLine
+      $position += $gitstatus.Branch.length
     }
 
     Write-Host "]" -NoNewLine
+    $position += "]".length
   }
 
-  Write-Host " " -NoNewLine
 
   if ($IsWindows) {
     $acl = Get-Acl $pwd
@@ -240,7 +246,22 @@ Function prompt {
     }
   }
   $path = $pwd -replace [Regex]::Escape($HOME), "~"
+
+  if ($position + $path.length -ge $width - 1) {
+    Write-Host `u{23ce}
+    $position = 0
+  } else {
+    Write-Host " " -NoNewLine
+    $position += " ".length
+  }
+
   Write-Host -ForegroundColor $color -NoNewline $path
+  $position += $path.length
+
+  if ($position -gt $width * 0.75) {
+    Write-Host `u{23ce}
+    $position = 0
+  }
 
   $global:LASTEXITCODE = $realLASTEXITCODE
   return "> "
