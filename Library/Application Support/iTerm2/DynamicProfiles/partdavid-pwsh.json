@@ -25,7 +25,7 @@
     "Red Component" : 1,
     "Blue Component" : 1
   },
-  "Normal Font" : "ProFontWindows 18",
+  "Normal Font" : "ProFontWindows 20",
   "Transparency" : 0.087869822485207097,
   "Custom Directory" : "No",
   "Rows" : 40,
@@ -66,7 +66,7 @@
   "Sync Title" : false,
   "Prompt Before Closing 2" : false,
   "BM Growl" : true,
-  "Command" : "\/usr\/local\/microsoft\/powershell\/6\/pwsh",
+  "Command" : "\/usr\/local\/microsoft\/powershell\/7\/pwsh",
   "Description" : "Default",
   "Dynamic Profile Filename" : "\/Users\/partdavid\/Library\/Application Support\/iTerm2\/DynamicProfiles\/profiles.json",
   "Mouse Reporting" : true,
