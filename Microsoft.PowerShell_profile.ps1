@@ -179,8 +179,13 @@ if (Test-Path -Path $utilities) {
   . $utilities
 }
 
+$babylonian = Join-Path (Split-Path $profile) 'ConvertTo-Babylonian.ps1'
+if (Test-Path -Path $babylonian) {
+  . $babylonian
+}
+
 Function prompt {
-  $lastsuccess = $?
+  $realDollarQuestion = $?
   $realLASTEXITCODE = $LASTEXITCODE
 
   # Reset color, which can be messed up by Enable-GitColors
@@ -216,7 +221,7 @@ Function prompt {
     # Git
     if ($gitstatus -ne $null) {
       $prev = $true
-      if ($gitstatus.Branch -eq "master") {
+      if ($gitstatus.Branch -in "main", "trunk", "master") {
         $color = "Red"
       } else {
         $color = "Green"
@@ -261,6 +266,15 @@ Function prompt {
   if ($position -gt $width * 0.75) {
     Write-Host `u{23ce}
     $position = 0
+  }
+  
+  if ((-not $realDollarQuestion)) {
+    if (Get-Command ConvertTo-Babylonian -ErrorAction Ignore) {
+      $errstr = ConvertTo-Babylonian $realLASTEXITCODE
+    } else {
+      $errstr = $realLASTEXITCODE.ToString()
+    }
+    Write-Host -ForegroundColor Red -NoNewLine " $errstr "
   }
 
   $global:LASTEXITCODE = $realLASTEXITCODE

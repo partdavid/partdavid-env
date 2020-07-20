@@ -144,6 +144,8 @@
 (autoload 'powershell-mode "powershell-mode"
   "Major mode for editing powershell files" t)
 (add-to-list 'auto-mode-alist '("\\.ps1\\'" . powershell-mode))
+(add-to-list 'auto-mode-alist '("\\.psm1\\'" . powershell-mode))
+(add-to-list 'auto-mode-alist '("\\.psd1\\'" . powershell-mode))
 (add-hook 'powershell-mode-hook
           (lambda ()
             (setq powershell-indent standard-indent)))

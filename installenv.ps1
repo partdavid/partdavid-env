@@ -15,7 +15,7 @@ function install-object {
 
     Write-Host "Copying $from -> $to"
 
-    if (-not TestPath -Path $destdir) {
+    if (-not (Test-Path -Path $destdir)) {
       New-Item -ItemType Directory -Force -Path $destdir
     }
 
@@ -37,7 +37,7 @@ if ($IsWindows) {
   $powershell_config_dir = "${HOME}/Documents/PowerShell"
 } else {
   $emacs_home = "${HOME}"
-  $powershell_config_dir = "${HOME}.config/powershell"
+  $powershell_config_dir = "${HOME}/.config/powershell"
 }
 
 # emacs
@@ -48,3 +48,9 @@ install-object $HOME dot-vimrc dot-inputrc bin
 
 # Copy powershell profile
 install-object $powershell_config_dir Microsoft.PowerShell_profile.ps1
+install-object $powershell_config_dir ConvertTo-Babylonian.ps1
+
+# Copy iTerm2 profile
+if (! $IsWindows) {
+  install-object "${HOME}" "./Library/Application Support/iTerm2/DynamicProfiles/partdavid-pwsh.json"
+}
