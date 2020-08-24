@@ -96,10 +96,17 @@
 
 (add-hook 'yaml-mode-hook
   '(lambda ()
-    (setq yaml-indent-offset 2)))
+     (setq yaml-indent-offset 2)))
 
 ;bats
 (add-to-list 'interpreter-mode-alist '("bats" . sh-mode))
+
+;sh
+(add-hook
+ 'sh-mode-hook
+ '(lambda ()
+    (setq sh-indentation 2)
+    (setq sh-basic-offset 2)))
 
 ;go
 (add-to-list 'load-path (envhome "emacs.d/go-mode"))

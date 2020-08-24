@@ -54,3 +54,12 @@ install-object $powershell_config_dir ConvertTo-Babylonian.ps1
 if (! $IsWindows) {
   install-object "${HOME}" "./Library/Application Support/iTerm2/DynamicProfiles/partdavid-pwsh.json"
 }
+
+# Install Modules
+$local_modules_dir = $env:PSModulePath.split([IO.Path]::PathSeparator).where({ $_ -match "$HOME*" }) | Select -First 1
+
+foreach ($module_source_dir in (Get-ChildItem -Path modules)) {
+  Remove-Item -Recurse -Force -Path (Join-Path -Path $local_modules_dir -ChildPath $module_source_dir.name) -ErrorAction Ignore
+  Copy-Item -Recurse -Force -Path $module_source_dir.fullname -Destination $local_modules_dir
+}
+
