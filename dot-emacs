@@ -148,7 +148,7 @@
 
 ;powershell
 (add-to-list 'load-path (envhome "emacs.d/powershell-mode"))
-(autoload 'powershell-mode "powershell-mode"
+(autoload 'powershell-mode "PowerShell-Mode"
   "Major mode for editing powershell files" t)
 (add-to-list 'auto-mode-alist '("\\.ps1\\'" . powershell-mode))
 (add-to-list 'auto-mode-alist '("\\.psm1\\'" . powershell-mode))

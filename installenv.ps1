@@ -43,8 +43,8 @@ if ($IsWindows) {
 # emacs
 install-object $emacs_home dot-emacs dot-viper emacs.d
 
-# Copy other files
-install-object $HOME dot-vimrc dot-inputrc bin
+# Copy other files (bash)
+install-object $HOME dot-bashrc dot-bash_functions dot-bash_prompt dot-bash_aliases dot-vimrc dot-inputrc bin
 
 # Copy powershell profile
 install-object $powershell_config_dir Microsoft.PowerShell_profile.ps1

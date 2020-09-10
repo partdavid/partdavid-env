@@ -1,6 +1,7 @@
 #!bash
-export INPUTRC=$ENV_HOME/dot-inputrc
-export PATH=$HOME/bin:$ENV_HOME/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
+ENV_HOME=$HOME
+export INPUTRC=$ENV_HOME/.inputrc
+export PATH=$HOME/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
 if [ -x $ENV_HOME/bin/editor ]
 then
     export EDITOR=$ENV_HOME/bin/editor
@@ -72,4 +73,4 @@ fi
 
 set -o vi
 
-alias r='. $ENV_HOME/bashrc'
+alias r='. $ENV_HOME/.bashrc'
