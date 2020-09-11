@@ -23,9 +23,9 @@
 ;(copy-file "~/.emacs.d/server/server" "/des:.emacs.d/server/server" t)
 
 ;source local host specific file
-(setq hostlocal-file (envhome (concat "emacs.d/hosts/" (system-name))))
-(if (file-exists-p hostlocal-file)
-    (load-file hostlocal-file))
+(let ((hostlocal-file (envhome (concat ".emacs_hosts/" (system-name)))))
+  (if (file-exists-p hostlocal-file)
+    (load-file hostlocal-file)))
 
 ;disable "Check it out?" prompts
 (defadvice viper-maybe-checkout (around viper-svn-checkin-fix activate)
