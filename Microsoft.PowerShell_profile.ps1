@@ -6,8 +6,6 @@ if (Test-Path -Path $local_modules) {
 Import-Module posh-git
 Import-Module PSReadLine
 Import-Module powershell-yaml
-Import-Module AWSPowerShell.NetCore
-Import-Module powershell-yaml
 Import-Module Shell-Contexts
 
 # Dvorak key mappings for vi command-line editing

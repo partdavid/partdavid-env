@@ -14,6 +14,19 @@
 (setq viper-mode 't)
 (require 'viper)
 
+;server
+(setq server-use-tcp t
+      server-port    9999)
+(defun server-start-and-copy ()
+  (server-start))
+(add-hook 'emacs-startup-hook 'server-start-and-copy)
+;(copy-file "~/.emacs.d/server/server" "/des:.emacs.d/server/server" t)
+
+;source local host specific file
+(setq hostlocal-file (envhome (concat "emacs.d/hosts/" (system-name))))
+(if (file-exists-p hostlocal-file)
+    (load-file hostlocal-file))
+
 ;disable "Check it out?" prompts
 (defadvice viper-maybe-checkout (around viper-svn-checkin-fix activate)
   "Advise viper-maybe-checkout to ignore svn files."
@@ -148,7 +161,7 @@
 
 ;powershell
 (add-to-list 'load-path (envhome "emacs.d/powershell-mode"))
-(autoload 'powershell-mode "PowerShell-Mode"
+(autoload 'powershell-mode "powershell-mode"
   "Major mode for editing powershell files" t)
 (add-to-list 'auto-mode-alist '("\\.ps1\\'" . powershell-mode))
 (add-to-list 'auto-mode-alist '("\\.psm1\\'" . powershell-mode))
