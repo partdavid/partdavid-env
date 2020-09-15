@@ -14,18 +14,70 @@
 (setq viper-mode 't)
 (require 'viper)
 
+;source local host specific file-- ~/.emacs_hosts/<hostname>
+;this is a good place to put strange system-specific stuff, like
+;maybe special values of SSH_AUTH_SOCK required for TRAMP to work
+(let ((hostlocal-file (envhome (concat ".emacs_hosts/" (system-name)))))
+  (if (file-exists-p hostlocal-file)
+    (load-file hostlocal-file)))
+
+;for TRAMP on my correctly-configured SSH connections--this section
+;establishes a watch for controlmaster sockets in ~/.ssh and synchronizes
+;the server auth file to those remote connections. Such connections should
+;be configured in ~/.ssh/config like so:
+;
+;Host shellbox
+;  HostName shellbox-vip0.real.example.
+;  ControlMaster auto
+;  ControlPath ~/.ssh/shellbox.sock
+;  RemoteForward 9999 localhost:9999
+;
+;Then when logged into shellbox, you can use:
+;
+;    emacsclient -f ~/.emacs.d/server/server /ssh:shellbox:<file>
+;
+; to edit the file (probably in a shell wrapper or similar).
+;
+;This scheme heavily inspired by: https://andy.wordpress.com/2013/01/03/automatic-emacsclient/
+
+(customize-set-variable 'tramp-use-ssh-controlmaster-options nil)
+
+(require 'filenotify)
+
+(defun hostname-from-socketname (sockname)
+  (file-name-sans-extension (file-name-base sockname)))
+
+(defun sync-server-auth-file (hostname)
+  (message "Synchronizing server auth file to %s" hostname)
+  (copy-file "~/.emacs.d/server/server" (format "/ssh:%s:.emacs.d/server/server" hostname) t)
+  (message "Synchronizing to %s complete" hostname))
+
+;(descriptor action file [file1])
+(defun copy-server-file-notify-callback (event)
+  (let ((action (nth 1 event))
+        (sockname (nth 2 event)))
+    (when (and (equal action 'created)
+               (equal "sock" (file-name-extension sockname)))
+      (sleep-for 5)
+      (sync-server-auth-file (hostname-from-socketname sockname)))))
+
+(file-notify-add-watch (envhome ".ssh") '(change) 'copy-server-file-notify-callback)
+
+; When run, will sync to every server with a ~/.ssh/{server}.sock controlmaster file
+(defun sync-on-server-start ()
+  (let ((controlsocks (file-expand-wildcards (concat (envhome ".ssh") "/*.sock"))))
+    (dolist (sockname controlsocks)
+      (sync-server-auth-file (hostname-from-socketname sockname)))))
+
 ;server
 (setq server-use-tcp t
       server-port    9999)
 (defun server-start-and-copy ()
-  (server-start))
-(add-hook 'emacs-startup-hook 'server-start-and-copy)
-;(copy-file "~/.emacs.d/server/server" "/des:.emacs.d/server/server" t)
+  (server-start)
+  (sync-on-server-start))
 
-;source local host specific file
-(let ((hostlocal-file (envhome (concat ".emacs_hosts/" (system-name)))))
-  (if (file-exists-p hostlocal-file)
-    (load-file hostlocal-file)))
+(add-hook 'emacs-startup-hook 'server-start-and-copy)
+;end TRAMP/emacsclient integration section
 
 ;disable "Check it out?" prompts
 (defadvice viper-maybe-checkout (around viper-svn-checkin-fix activate)
