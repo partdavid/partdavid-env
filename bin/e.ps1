@@ -11,9 +11,9 @@ if ($env:SSH_TTY) {
 
   $target = $cmd[-1]
   if ([System.IO.Path]::IsPathRooted($target)) {
-    $target = "/ssh:$($env:REMOTE_EMACS_CLIENT_NAME):$target"
+    $target = "/ssh:$($remote_emacs_client_name):$target"
   } else {
-    $target = "/ssh:$($env:REMOTE_EMACS_CLIENT_NAME):$(Join-Path -Path $PWD -ChildPath $target)"
+    $target = "/ssh:$($remote_emacs_client_name):$(Join-Path -Path $PWD -ChildPath $target)"
   }
   $cmd[-1] = $target
 }
