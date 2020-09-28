@@ -1,43 +1,34 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-export ENV_HOME=${ENV_HOME:-/usr/local/env/${SUDO_USER:-$USER}}
-# This is very hacky and specific to my setup, either arrange to set
-# it in Windows and share in WSL or set in .bash_host/* or something.
-export WIN_ENV_HOME=${WIN_ENV_HOME:-"C:/Users/${USERNAME:-$USER}/partdavid-env"}
+cmd=("$@")
 
-win_emacs="/mnt/c/ProgramData/chocolatey/bin/emacs.exe"
-mac_emacs="/Applications/Emacs.app/Contents/MacOS/Emacs"
-emacs_init="$ENV_HOME/emacs"
-
-test -d ~/.backups || mkdir ~/.backups
-
-if [ -x "$win_emacs" ]
+if [[ -n $SSH_TTY ]]
 then
-    # We're running something like WSL, cygwin, git bash
-    # Windows Emacs may need a different ENV_HOME that refers
-    # to a windows path, and a `-l` argument that
-    # also refers to a windows path
-    emacs="$win_emacs"
-    emacs_init="$WIN_ENV_HOME/emacs"
-elif [ -x "$mac_emacs" ]
-then
-    emacs="$mac_emacs"
-else
-    emacs=$(which emacs)
+  if [[ -n $REMOTE_EMACS_CLIENT_NAME ]]
+  then
+    remote_emacs_client_name="${REMOTE_EMACS_CLIENT_NAME}"
+  else
+    remote_emacs_client_name="$(uname -n)"
+  fi
+
+  target="${cmd[$((${#cmd[@]}-1))]}"
+
+  if [[ $target = /* ]]
+  then
+    target="/ssh:${remote_emacs_client_name}:$target"
+  else
+    target="/ssh:${remote_emacs_client_name}:${PWD}/${target}"
+  fi
+  cmd[$((${#cmd[@]}-1))]="${target}"
 fi
 
-vim=$(which vim)
-
-if [ -n "$emacs" ]
+# I use TCP for the Emacs server, because I also use it remotely
+# from other machines
+if [[ -f ~/.emacs.d/server/server ]]
 then
-    echo "$emacs" -q -l "$emacs_init" "$@"
-    exec "$emacs" -q -l "$emacs_init" "$@"
-elif [ -n "$vim" ]
-then
-    echo "$vim" -u $ENV_HOME/vimrc  --cmd "set rtp^=$ENV_HOME/vim" "$@"
-    exec "$vim" -u $ENV_HOME/vimrc  --cmd "set rtp^=$ENV_HOME/vim" "$@"
-else
-    echo vi "$@"
-    exec vi "$@"
+  cmd+=(-f ~/.emacs.d/server/server)
 fi
 
+echo "${cmd[@]}"
+
+emacsclient "${cmd[@]}"
