@@ -3,9 +3,17 @@ if (Test-Path -Path $local_modules) {
   $Env:PSModulePath += '{0}{1}' -f [IO.Path]::PathSeparator,$local_modules
 }
 
-Import-Module posh-git
+foreach ($mod in 'posh-git','powershell-yaml') {
+  if (Get-Module -Name $mod -ListAvailable) {
+    Import-Module $mod
+  } else {
+    Install-Module $mod
+    Import-Module $mod
+  }
+}
+
+# Always available because built-in or I installed it.
 Import-Module PSReadLine
-Import-Module powershell-yaml
 Import-Module Shell-Contexts
 
 # Dvorak key mappings for vi command-line editing
@@ -20,7 +28,14 @@ Set-PSReadlineKeyHandler -Key Tab -Function Complete
 
 Set-Alias use Set-CurrentContext
 
-$utilities = Join-Path (Split-Path $profile) 'utilities.ps1'
+if ($IsWindows) {
+  $env:HOSTNAME = $env:COMPUTERNAME
+} else {
+  $env:HOSTNAME = uname -n
+  $env:USER_ID = id -u
+}
+
+$utilities = Join-Path $HOME -ChildPath '.pwsh_hosts' -AdditionalChildPath "$($env:HOSTNAME).ps1"
 
 if (Test-Path -Path $utilities) {
   . $utilities
@@ -45,8 +60,7 @@ Function prompt {
     $user = [Security.Principal.WindowsIdentity]::GetCurrent()
     $me = $user.Name
   } else {
-    $host_name = uname -n
-    $user_id = id -u
+    $host_name = $Env:HOSTNAME
     $user_name = $Env:USER
     $me = "$host_name\$Env:USER"
   }
@@ -92,7 +106,7 @@ Function prompt {
     }
   } else {
     $owner_id = stat -f '%u' $pwd
-    if ($owner_id -eq $user_id) {
+    if ($owner_id -eq $Env:USER_ID) {
       $color = "Green"
     } else {
       $color = "Cyan"

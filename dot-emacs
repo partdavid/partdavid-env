@@ -30,7 +30,7 @@
 ;  HostName shellbox-vip0.real.example.
 ;  ControlMaster auto
 ;  ControlPath ~/.ssh/shellbox.sock
-;  RemoteForward 9999 localhost:9999
+;  RemoteForward 26972 localhost:26972
 ;
 ;Then when logged into shellbox, you can use:
 ;
@@ -45,10 +45,11 @@
 (require 'filenotify)
 
 (defun hostname-from-socketname (sockname)
-  (file-name-sans-extension (file-name-base sockname)))
+  (file-name-base sockname))
 
 (defun sync-server-auth-file (hostname)
   (message "Synchronizing server auth file to %s" hostname)
+  (make-directory (format "/ssh:%s:.emacs.d/server" hostname) t)
   (copy-file "~/.emacs.d/server/server" (format "/ssh:%s:.emacs.d/server/server" hostname) t)
   (message "Synchronizing to %s complete" hostname))
 
@@ -71,7 +72,7 @@
 
 ;server
 (setq server-use-tcp t
-      server-port    9999)
+      server-port    26972)
 (defun server-start-and-copy ()
   (server-start)
   (sync-on-server-start))

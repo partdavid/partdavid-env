@@ -2,7 +2,13 @@
 
 $cmd = $Args
 
-if ($env:REMOTE_EMACS_CLIENT_NAME) {
+if ($env:SSH_TTY) {
+  if ($env:REMOTE_EMACS_CLIENT_NAME) {
+    $remote_emacs_client_name = $env:REMOTE_EMACS_CLIENT_NAME
+  } else {
+    $remote_emacs_client_name = uname -n
+  }
+
   $target = $cmd[-1]
   if ([System.IO.Path]::IsPathRooted($target)) {
     $target = "/ssh:$($env:REMOTE_EMACS_CLIENT_NAME):$target"
