@@ -42,7 +42,6 @@
 
 (customize-set-variable 'tramp-use-ssh-controlmaster-options nil)
 
-(require 'filenotify)
 
 (defun hostname-from-socketname (sockname)
   (file-name-base sockname))
@@ -62,13 +61,20 @@
       (sleep-for 5)
       (sync-server-auth-file (hostname-from-socketname sockname)))))
 
-(file-notify-add-watch (envhome ".ssh") '(change) 'copy-server-file-notify-callback)
-
 ; When run, will sync to every server with a ~/.ssh/{server}.sock controlmaster file
 (defun sync-on-server-start ()
   (let ((controlsocks (file-expand-wildcards (concat (envhome ".ssh") "/*.sock"))))
     (dolist (sockname controlsocks)
       (sync-server-auth-file (hostname-from-socketname sockname)))))
+
+; If emacs 25.x and above, we have filenotify,
+; otherwise you'll have to manually run sync-on-server-start
+; whenever you establish a new SSH connection
+(if (version< emacs-version "24.4")
+    (message "Emacs is too old for filenotify--run M-x sync-on-server-start RET")
+  (progn
+    (require 'filenotify)
+    (file-notify-add-watch (envhome ".ssh") '(change) 'copy-server-file-notify-callback)))
 
 ;server
 (setq server-use-tcp t
@@ -77,7 +83,9 @@
   (server-start)
   (sync-on-server-start))
 
-(add-hook 'emacs-startup-hook 'server-start-and-copy)
+; We don't start the server automatically if we're in an SSH session
+(unless (getenv "SSH_TTY")
+  (add-hook 'emacs-startup-hook 'server-start-and-copy))
 ;end TRAMP/emacsclient integration section
 
 ;disable "Check it out?" prompts
