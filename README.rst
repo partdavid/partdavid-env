@@ -9,8 +9,8 @@ I have a weird editor setup so I doubt anyone really wants to share (I
 use a Dvorak keyboard layout, prefer Emacs with Viper (vi keybindings)
 but can use Vim in a pinch). Using Dvorak with vi keys means I have
 shifted the hand position of cursor controls to the left by one
-position. That's why `viper`, `vimrc` and `inputrc` all remap `hjkl`
-to `htns`.
+position. That's why `viper`, `vimrc`, `inputrc`, `editrc` and the
+PowerShell profile all remap `hjkl` to `htns`.
 
 Files
 -----
@@ -22,7 +22,7 @@ Files
     hacks around the lack of a proper shell function implementation
     in `rbenv` and `pyenv`.
 
-`bashrc`
+`dot-bashrc`
     This ties all the bashbits together by setting things like the
     **ENV_HOME** variable, **EDITOR** and things like that. It picks
     up customizations in the home directory, sets the prompt,
@@ -45,9 +45,13 @@ Files
     A small config for VIPER, the Emacs package that emulates Vi.
 
 `bin/editor`
-    A convenience script that has the correct command lines for
-    invoking Emacs (if installed) and Vim with the right arguments
-    to make them pick up the replacement dot-files.
+    A convenience script that enables using an Emacs server (with
+    TRAMP, if you've configured it right--see dot-emacs) on local
+    and remote machines, from bash.
+
+`bin/e.ps1`
+    Similar to the `editor` command, but a Powershell script
+    (Powershell sessions don't fork to run Powershell scripts).
 
 `bin/sup`
     A convenience wrapper for `sudo` that runs a command with sudo if provided;
@@ -60,14 +64,28 @@ Files
 Installation
 ------------
 
-Install the Powershell environment by doing `bin/installenv`.
-
-Install the bash environment by copying the files to the appropriate
-locations.
+Install the environment by doing `bin/installenv.ps1`. This script depends
+on Powershell being installed: I still use bash for things for compatibility
+but have switched to Powershell. I may still rewrite this installer as I
+figure out more of what I want it to do.
 
 
 Use/Features
 ------------
+
+Host-specific Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Emacs, bash and PowerShell configurations all look for a host-specific
+file in `~/.emacs_hosts`, `~/.bash_hosts` and `~/.pwsh_hosts`, respectively.
+For example, if your laptop is named `Partdavid-Mac`, and you want to set
+something different here, you can create a file named `~/.emacs_hosts/Partdavid-Mac`
+and it will be loaded and evaluated as an Emacs lisp file; similarly, with
+the others. The hostname in question is the value of the `HOSTNAME` environment
+variable.
+
+Bash
+~~~~
 
 The following convenience aliases are provided:
 
@@ -96,7 +114,7 @@ will initialize the environment for use.
 
 
 Prompt
-~~~~~~
+^^^^^^
 
 A bash prompt of the common `user@host:dir$ ` form. It is enhanced
 with the following features:
@@ -133,9 +151,12 @@ Namely:
 * Instead of being bolded, the branchname **master** is decorated with
   stars (`*`).
 * Instead of being underlined when you have an ssh-agent, your username
-  has an arrow by it.
+  has underscore characters around it (`_`).
 * Instead of being colored according to your permissions, your current
   directory has the following characters:
   - star (`*`) if you own it (because you can do everything)
   - plus (`+`) if you have write permission (because you can do some things)
   - nothing () if you cannot write to it
+
+This is compatible with TRAMP's default prompt-matching patterns, but
+for the special `TERM` value `dumb`, a very dumb prompt is used.
