@@ -2,7 +2,20 @@
 
 $cmd = $Args
 
-if ($env:SSH_TTY) {
+if (-not $env:ALTERNATE_EDITOR) {
+  foreach ($candidate in 'emacs','vim','vi') {
+    if (Get-Command $candidate -ErrorAction SilentlyContinue) {
+      Set-Content -Path Env:ALTERNATE_EDITOR -Value $candidate
+      break
+    }
+  }
+}
+
+if (-not (Get-Command emacsclient -ErrorAction SilentlyContinue)) {
+  & $env:ALTERNATE_EDITOR @Args
+}
+
+if ($env:SSH_CONNECTION) {
   if ($env:REMOTE_EMACS_CLIENT_NAME) {
     $remote_emacs_client_name = $env:REMOTE_EMACS_CLIENT_NAME
   } else {

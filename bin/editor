@@ -2,7 +2,25 @@
 
 cmd=("$@")
 
-if [[ -n $SSH_TTY ]]
+if [[ -z $ALTERNATE_EDITOR ]]
+then
+  for candidate in emacs vim vi
+  do
+    if [[ -n $(which $candidate 2>/dev/null) ]]
+    then
+      export ALTERNATE_EDITOR="${candidate}"
+      break
+    fi
+  done
+fi
+
+if [[ -n $(which emacsclient) ]]
+then
+  "${ALTERNATE_EDITOR}" "${@}"
+  exit $?
+fi
+
+if [[ -n $SSH_CONNECTION ]]
 then
   if [[ -n $REMOTE_EMACS_CLIENT_NAME ]]
   then
