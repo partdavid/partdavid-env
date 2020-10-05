@@ -14,7 +14,7 @@ then
   done
 fi
 
-if [[ -n $(which emacsclient) ]]
+if [[ -z $(which emacsclient) ]]
 then
   "${ALTERNATE_EDITOR}" "${@}"
   exit $?
