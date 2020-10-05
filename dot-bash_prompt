@@ -82,7 +82,10 @@ set_jp_branch() {
 
 export PROMPT_COMMAND='ec=$?; set_jp_branch; br="$jp_branch"; jp_br=""; jp_bb=""; jp_be=""; jp_err=""; jp_eb=""; jp_ee=""; jp_wb=""; jp_we=""; jp_ab=""; jp_ae=""; jp_e=""; if [[ -O "$PWD" ]]; then jp_wb=$jp_own_pre; jp_we=$jp_own_post; elif [[ -w "$PWD" ]]; then jp_wb=$jp_write_pre; jp_we=$jp_write_post; else jp_wb=$jp_nothing_pre; jp_we=$jp_nothing_post; fi; if [[ -w $SSH_AUTH_SOCK ]]; then jp_ab=$jp_agent_pre; jp_ae=$jp_agent_post; fi; if [[ $ec -ne 0 ]]; then jp_err=" ($ec)"; jp_eb=$jp_err_pre; jp_ee=$jp_err_post; fi; if [[ "$br" = master ]]; then jp_bb=$jp_bold_pre; jp_be=$jp_bold_post; fi; if [[ -n "$br" ]]; then jp_br="[$br]"; fi'
 
-if [ "$jp_active_prompt" == true ]
+if [ "$TERM" == dumb ]
+then
+   PS1='\s\$ '
+elif [ "$jp_active_prompt" == true ]
 then
    PS1="\\[${jp_title}\\]"'\[${jp_ab}\]\u\[${jp_ae}\]@\H:\[$jp_bb\]$jp_br\[$jp_be\]\[${jp_wb}\]\w\[${jp_we}\]\[${jp_eb}\]${jp_err}\[${jp_ee}\]\$ '
 else
