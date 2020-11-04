@@ -39,6 +39,14 @@
 ; to edit the file (probably in a shell wrapper or similar).
 ;
 ;This scheme heavily inspired by: https://andy.wordpress.com/2013/01/03/automatic-emacsclient/
+;
+;See also the `editor` script, which refrobulates filenames given to it
+;to TRAMP style filenames so that a remote emacsclient can connect back
+;to here automatically, since I frequently find something to edit from
+;the command line. This setup recursively copies ~/bin so that this script,
+;plus any platform-specific emacsclient executables it uses, are also
+;copied over, completing the editor environment.
+;
 
 (customize-set-variable 'tramp-use-ssh-controlmaster-options nil)
 
@@ -52,6 +60,11 @@
   (copy-file "~/.emacs.d/server/server" (format "/ssh:%s:.emacs.d/server/server" hostname) t)
   (message "Synchronizing to %s complete" hostname))
 
+(defun sync-bin-directory (hostname)
+  (message "Synchronizing ~/bin directory to %s" hostname)
+  (async-shell-command (format "rsync -Pqr '%s/bin/' '%s:bin/'" (getenv "HOME") hostname))
+  (message "Synchronizing ~/bin to %s complete" hostname))
+
 ;(descriptor action file [file1])
 (defun copy-server-file-notify-callback (event)
   (let ((action (nth 1 event))
@@ -59,9 +72,12 @@
     (when (and (equal action 'created)
                (equal "sock" (file-name-extension sockname)))
       (sleep-for 5)
-      (sync-server-auth-file (hostname-from-socketname sockname)))))
+      (sync-server-auth-file (hostname-from-socketname sockname))
+      (sync-bin-directory (hostname-from-socketname sockname)))))
 
 ; When run, will sync to every server with a ~/.ssh/{server}.sock controlmaster file
+; Note that it just syncs the server credential, not the bin directory. Not sure yet
+; if that's desirable or undesirable.
 (defun sync-on-server-start ()
   (let ((controlsocks (file-expand-wildcards (concat (envhome ".ssh") "/*.sock"))))
     (dolist (sockname controlsocks)

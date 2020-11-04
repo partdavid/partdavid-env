@@ -1,27 +1,60 @@
 #!/usr/bin/env bash
 
+# Arguments to the editor--the *assumption* is that there is one file to edit
+# and it's last. It's a bad assumption, but this script is impractical otherwise
+# (well, not really impractical--just fragile in a different direction).
 cmd=("$@")
 
+# First, find whatever we're going to use if there's no emacsclient installed,
+# preferring emacs
 if [[ -z $ALTERNATE_EDITOR ]]
 then
   for candidate in emacs vim vi
   do
-    if [[ -n $(which $candidate 2>/dev/null) ]]
+    full_candidate="$(which "${candidate}" 2>/dev/null)"
+    if [[ -n $full_candidate ]]
     then
-      export ALTERNATE_EDITOR="${candidate}"
+      export ALTERNATE_EDITOR="${full_candidate}"
       break
     fi
   done
 fi
 
-if [[ -z $(which emacsclient) ]]
+# Maybe emacsclient is installed, maybe I need to use the copy I bring along
+# in ~/bin that is OS-specific. This works best with a copy of emacsclient
+# in ~/bin like:
+# ~/bin/emacsclient-darwin19
+# ~/bin/emacsclient-linux-gnu
+# ...
+# But we prefer the 'emacsclient' already in the path
+for ec_candidate in "${EMACSCLIENT}" emacsclient emacsclient-"${OSTYPE}"
+do
+  full_ec_candidate="$(which "${ec_candidate}" 2>/dev/null)"
+  if [[ -n $full_ec_candidate ]]
+  then
+    emacsclient="${full_ec_candidate}"
+  fi
+done
+
+# If we haven't found any emacsclient, we directly invoke our alternative
+if [[ -z $emacsclient ]]
 then
+  echo "${ALTERNATE_EDITOR}" "${@}"
   "${ALTERNATE_EDITOR}" "${@}"
   exit $?
 fi
 
+# After this, we are dealing only with emacsclient
+
+# If we're on an SSH connection (not on our personal workstation), we need
+# to arrange to take advantage of our tunnelled TCP emacs server connection
+# by refrobulating the filename to one expected by TRAMP
 if [[ -n $SSH_CONNECTION ]]
 then
+  # In case we have a special name we've set up in `~/.ssh/config` as an
+  # alias, we want to reuse the same name, so we'd have to set this environment
+  # variable when logging in (perhaps in ~/.bash_hosts/<hostname>) or
+  # similar.
   if [[ -n $REMOTE_EMACS_CLIENT_NAME ]]
   then
     remote_emacs_client_name="${REMOTE_EMACS_CLIENT_NAME}"
@@ -29,8 +62,11 @@ then
     remote_emacs_client_name="$(uname -n)"
   fi
 
+  # We assume the file we have to change is the last argument
   target="${cmd[$((${#cmd[@]}-1))]}"
 
+  # If the filename is absolute, we can just use it, otherwise
+  # we have to add the current directory
   if [[ $target = /* ]]
   then
     target="/ssh:${remote_emacs_client_name}:$target"
@@ -47,6 +83,6 @@ then
   cmd+=(-f ~/.emacs.d/server/server)
 fi
 
-echo "${cmd[@]}"
+echo "${emacsclient}" "${cmd[@]}"
 
-emacsclient "${cmd[@]}"
+"${emacsclient}" "${cmd[@]}"

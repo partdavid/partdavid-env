@@ -44,7 +44,10 @@ if ($IsWindows) {
 install-object $emacs_home dot-emacs dot-viper emacs.d
 
 # Copy other files (bash)
-install-object $HOME dot-bashrc dot-bash_functions dot-bash_prompt dot-bash_aliases dot-vimrc dot-inputrc bin
+install-object $HOME dot-bashrc dot-bash_functions dot-bash_prompt dot-bash_aliases dot-vimrc dot-inputrc
+
+# Copy files in bin without removing existing ones
+Get-ChildItem bin | Copy-Item -Destination "${HOME}/bin" -Recurse
 
 # Copy powershell profile
 install-object $powershell_config_dir Microsoft.PowerShell_profile.ps1
@@ -62,4 +65,3 @@ foreach ($module_source_dir in (Get-ChildItem -Path modules)) {
   Remove-Item -Recurse -Force -Path (Join-Path -Path $local_modules_dir -ChildPath $module_source_dir.name) -ErrorAction Ignore
   Copy-Item -Recurse -Force -Path $module_source_dir.fullname -Destination $local_modules_dir
 }
-
