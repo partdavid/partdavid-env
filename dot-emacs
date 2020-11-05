@@ -60,10 +60,17 @@
   (copy-file "~/.emacs.d/server/server" (format "/ssh:%s:.emacs.d/server/server" hostname) t)
   (message "Synchronizing to %s complete" hostname))
 
+; depends on rsync. I spent a little time figuring out how to do this
+; with copy-directory over TRAMP and it just... doesn't. And it's slow.
+; thanks to https://stackoverflow.com/a/47910509 for help suppressing
+; the "pop up" of *Async Shell Command*
 (defun sync-bin-directory (hostname)
-  (message "Synchronizing ~/bin directory to %s" hostname)
-  (async-shell-command (format "rsync -Pqr '%s/bin/' '%s:bin/'" (getenv "HOME") hostname))
-  (message "Synchronizing ~/bin to %s complete" hostname))
+  (let (
+        (display-buffer-alist (list (cons "\\*Async Shell Command\\*.*" (cons #'display-buffer-no-window nil))))
+        )
+    (message "Synchronizing ~/bin directory to %s" hostname)
+    (async-shell-command (format "rsync -Pqr '%s/bin/' '%s:bin/'" (getenv "HOME") hostname))
+    (message "Synchronizing ~/bin to %s complete" hostname)))
 
 ;(descriptor action file [file1])
 (defun copy-server-file-notify-callback (event)
