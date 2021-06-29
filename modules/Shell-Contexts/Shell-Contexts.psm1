@@ -4,6 +4,9 @@ $commands = @{
   'Write-CurrentContext' = $true
   'Add-PathDirectory' = $true
   'Remove-PathDirectory' = $true
+  'Enter-Context' = $true
+  'Exit-Context' = $true
+  'Get-ContextConfiguration' = $true
 }
 
 foreach ($command in $commands.keys) {

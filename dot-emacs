@@ -69,8 +69,8 @@
         (display-buffer-alist (list (cons "\\*Async Shell Command\\*.*" (cons #'display-buffer-no-window nil))))
         )
     (message "Synchronizing ~/bin directory to %s" hostname)
-    (async-shell-command (format "rsync -Pqr '%s/bin/' '%s:bin/'" (getenv "HOME") hostname))
-    (message "Synchronizing ~/bin to %s complete" hostname)))
+    (async-shell-command (format "rsync -Pqr '%s/bin/' '%s:bin/'" (getenv "HOME") hostname)) 
+   (message "Synchronizing ~/bin to %s complete" hostname)))
 
 ;(descriptor action file [file1])
 (defun copy-server-file-notify-callback (event)
@@ -134,6 +134,7 @@
   kept-old-versions 2
   version-control t)
 
+
 ;cl-lib
 (defun extract-major-version (version-string)
   "Extract the first string of digits delimited by a dot"
@@ -171,6 +172,12 @@
     (setq ruby-insert-encoding-magic-comment nil)
     (setq ruby-indent-level standard-indent)))
 
+;javascript
+(setq js-indent-level standard-indent)
+(add-hook 'js-mode-hook
+          (lambda ()
+            (setq js-indent-level standard-indent)))
+
 ;rspec
 (add-to-list 'load-path (envhome "emacs.d/rspec-mode"))
 (require 'rspec-mode)
@@ -206,9 +213,34 @@
     (setq sh-basic-offset 2)))
 
 ;go
+(setq go-path-directories (list (concat (getenv "HOME") "/go/bin") "/usr/local/go/bin" "/usr/local/bin"))
+(setq go-path-directories-added-p nil)
 (add-to-list 'load-path (envhome "emacs.d/go-mode"))
 (autoload 'go-mode "go-mode" "Major mode for editing go source")
 (add-to-list 'auto-mode-alist '("\\.go$" . go-mode))
+(add-hook 'before-save-hook #'gofmt-before-save)
+
+;protobuf
+;protobuf doesn't have an indent level, it does this weird hook thing
+;and inside the hook regular variables aren't visible? so i can't
+;use standard-indent here.
+(defconst my-protobuf-style
+  '((c-basic-offset . 2)
+    (indent-tabs-mode . nil)))
+(add-to-list 'load-path (envhome "emacs.d/protobuf-mode"))
+(autoload 'protobuf-mode "protobuf-mode" "Major mode for editing protobuf files")
+(add-to-list 'auto-mode-alist '("\\.proto$" . protobuf-mode))
+(add-hook 'protobuf-mode-hook
+          (lambda() (c-add-style "my-style" my-protobuf-style t)))
+
+;Hook for adding go path directories to exec-path and PATH
+(defun add-go-path-directories ()
+  (unless go-path-directories-added-p
+    (setq go-path-directories-added-p t)
+    (setq exec-path (append go-path-directories exec-path))
+    (dolist (dir go-path-directories)
+      (setenv "PATH" (concat dir ":" (getenv "PATH"))))))
+(add-hook 'go-mode-hook #'add-go-path-directories)
 
 ;file variables for indentation
 (put 'puppet-indent-level 'safe-local-variable 'integerp)

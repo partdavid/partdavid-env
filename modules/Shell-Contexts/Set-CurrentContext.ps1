@@ -51,6 +51,13 @@ exit
   A sequence of strings, which will be evaluated as commands using
   Invoke-Expression when switching out of the context.
 
+parent
+
+  A single value identifying a context from which this one inherits
+  the above values. Every context implicitly inherits from "_all",
+  so if you define an "_all" context, its settings will apply
+  to every context.
+
 .PARAMETER NewContext
 
 This is the name of the context (usually defined in ~/.contexts.yaml) to
@@ -80,6 +87,36 @@ Example ~/.contexts.yaml
     entry:
       - kubectl use-context web-cluster-1
 
+.EXAMPLE
+
+Here's another example, a little more complicated:
+
+  --
+  _all:
+    entry:
+      - stty sane
+  prod:
+    color: red
+    env:
+      AWS_PROFILE: contoso-production
+    entry:
+      - kubectl use-context web-cluster-$AWS_DEFAULT_REGION
+  prod-east:
+    parent: prod
+    env:
+      AWS_DEFAULT_REGION: us-east-1
+  prod-west:
+    parent: prod
+    env:
+      AWS_DEFAULT_REGION: us-west-2
+
+Since an "_all" section is defined, every context will run
+the `stty sane` command when they're entered.
+
+The "prod-east" context inherits from the "prod" context.
+Note how you can use environment variables in entry/exit
+commands.
+
 #>
 function Set-CurrentContext {
   [CmdletBinding()]
@@ -88,78 +125,11 @@ function Set-CurrentContext {
     [parameter(mandatory=$false, position=0)] [String]$NewContext
   )
 
-  if (Test-Path -Path ~/.contexts.yaml) {
-    $contexts = Get-Content -Raw ~/.contexts.yaml | ConvertFrom-Yaml
-  } else {
-    $contexts = @{}
-  }
-
   if ($Env:CURRENT_CONTEXT -ne $null) {
-
-    $OldContext = $Env:CURRENT_CONTEXT
-    Remove-Item -Path Env:CURRENT_CONTEXT
-
-    if ($contexts[$OldContext] -ne $null) {
-      if ($contexts[$OldContext].exit -ne $null) {
-        foreach ($cmd in $contexts[$OldContext].exit) {
-          Invoke-Expression -Command $cmd
-        }
-      }
-
-      if ($contexts[$OldContext].env -ne $null) {
-        foreach ($var in $contexts[$OldContext].env.keys) {
-          Remove-Item -Path Env:$var -errorAction ignore
-        }
-      }
-
-      if ($contexts[$OldContext].globals -ne $null) {
-        foreach ($var in $contexts[$OldContext].globals.keys) {
-          Remove-Variable -Name $var -errorAction ignore -Scope global
-        }
-      }
-      
-      if ($contexts[$OldContext].path -ne $null) {
-        foreach ($dir in $contexts[$OldContext].path) {
-          Remove-PathDirectory -Name $dir
-        }
-      }
-
-    }
+    Exit-Context -Context $Env:CURRENT_CONTEXT
   }
 
   if ($NewContext -ne $null) {
-    $Env:CURRENT_CONTEXT = $NewContext
-    $global:context_color = 'Gray'
-    
-    if ($contexts[$NewContext] -ne $null) {
-      if ($contexts[$NewContext].color -ne $null) {
-        $global:context_color = $contexts[$NewContext].color
-      }
-      
-      if ($contexts[$NewContext].env -ne $null) {
-        foreach ($var in $contexts[$NewContext].env.keys) {
-          Set-Content -Path Env:$var -Value $contexts[$NewContext].env[$var]
-        }
-      }
-
-      if ($contexts[$NewContext].globals -ne $null) {
-        foreach ($var in $contexts[$NewContext].globals.keys) {
-          Set-Variable -Name $var -Value $contexts[$NewContext].globals[$var] -Scope global
-        }
-      }
-
-      if ($contexts[$NewContext].path -ne $null) {
-        foreach ($dir in $contexts[$NewContext].path) {
-          Add-PathDirectory -Name $dir
-        }
-      }
-      
-      if ($contexts[$NewContext].entry -ne $null) {
-        foreach ($cmd in $contexts[$NewContext].entry) {
-          Invoke-Expression -Command $cmd
-        }
-      }
-    
-    }
+    Enter-Context -Context $NewContext
   }
 }
