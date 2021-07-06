@@ -129,7 +129,7 @@ function Set-CurrentContext {
     Exit-Context -Context $Env:CURRENT_CONTEXT
   }
 
-  if ($NewContext -ne $null) {
+  if ($NewContext -ne "") {
     Enter-Context -Context $NewContext
   }
 }

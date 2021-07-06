@@ -34,11 +34,16 @@ function Get-ContextConfiguration {
   }
 
   if ($config -eq $Null) {
-    @{}
-  } else {
-
-    $config
+    $config = @{}
   }
+
+  if ($config.parent -eq $Null) {
+    $config.parent = '_all'
+  }
+
+  $config = Expand-Context -Contexts $contexts -Context $config -ContextName $Context
+
+  $config
 }
 
 function Expand-Context {
@@ -46,36 +51,60 @@ function Expand-Context {
 
   Param(
     [Parameter(Mandatory=$True)] [HashTable]$Contexts,
-    [Parameter(Mandatory=$True)] [HashTable]$Context
+    [Parameter(Mandatory=$True)] [HashTable]$Context,
     [Parameter(Mandatory=$True)] [String]$ContextName
   )
+
+  if ($ContextName -eq '_all') {
+    return $Context
+  }
 
   $MyContext = $Context.Clone()
 
   if ($MyContext.parent -ne $Null) {
-    $Parent = $Contexts[$MyContext.parent]
-    if ($Parent -eq $Null) {
-      Write-Warning "The parent of $ContextName is $($MyContext.parent), but that isn't defined"
-    } else {
+    if ($Contexts.ContainsKey($MyContext.parent)) {
+      $Parent = Expand-Context -Contexts $Contexts -Context $Contexts[$MyContext.parent] -ContextName $MyContext.parent
       # The Hash-like attribute groups are env and globals
       foreach ($attrgroup in 'env','globals') {
-      if ($Parent[$attrgroup])
-        if (-not $MyContext[$attrgroup]) {
-          $MyContext[$attrgroup] = $Parent[$attrgroup].Clone()
-        } else {
-          foreach ($var in $Parent[$attrgroup].keys) {
-            if (-not $MyContext[$attrgroup].ContainsKey($var)) {
-              $MyContext[$attrgroup][$var] = $Parent[$attrgroup][$var]
+        if ($Parent[$attrgroup]) {
+          if (-not $MyContext[$attrgroup]) {
+            $MyContext[$attrgroup] = $Parent[$attrgroup].Clone()
+          } else {
+            foreach ($var in $Parent[$attrgroup].keys) {
+              if (-not $MyContext[$attrgroup].ContainsKey($var)) {
+                $MyContext[$attrgroup][$var] = $Parent[$attrgroup][$var]
+              }
             }
           }
         }
       }
 
-      foreach ($attrgroup in 'path','entry') {
+      # The Array-like attribute groups are path, entry and exit
+      foreach ($attrgroup in 'path','entry','exit') {
         if ($Parent[$attrgroup]) {
-          if (-not $MyContext[$attrgroup]
-
-    env
-    globals
-    path
-    entry
+          if (-not $MyContext[$attrgroup]) {
+            $MyContext[$attrgroup] = @()
+          }
+          foreach ($entry in [array]::Reverse($Parent[$attrgroup])) {
+            if ($MyContext[$attrgroup] -notcontains $entry) {
+              $MyContext[$attrgroup] = @($entry) + $MyContext[$attrgroup]
+            }
+          }
+        }
+      }
+      
+      # The scalar attribute groups are color
+      foreach ($attrgroup in ,'color') {
+        if ($Parent[$attrgroup]) {
+          $MyContext[$attrgroup] = $Parent[$attrgroup]
+        }
+      }
+    } else {
+      # It's okay if _all isn't defined
+      if ($MyContext.parent -ne '_all') {
+        Write-Warning "The parent of $ContextName is $($MyContext.parent), but that isn't defined"
+      }
+    }
+  }
+  $MyContext
+}
