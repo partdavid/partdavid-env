@@ -8,7 +8,7 @@
 
 @{
   RootModule = 'Shell-Contexts.psm1'
-  ModuleVersion = '0.6.0'
+  ModuleVersion = '0.7.0'
   GUID = 'aa653768-02e2-4805-9a36-1ba494b210e1'
   Author = 'Jeremy Brinkley'
   CompanyName = 'Verizon Media'
