@@ -63,5 +63,8 @@ $local_modules_dir = $env:PSModulePath.split([IO.Path]::PathSeparator).where({ $
 
 foreach ($module_source_dir in (Get-ChildItem -Path modules)) {
   Remove-Item -Recurse -Force -Path (Join-Path -Path $local_modules_dir -ChildPath $module_source_dir.name) -ErrorAction Ignore
-  Copy-Item -Recurse -Force -Path $module_source_dir.fullname -Destination $local_modules_dir
+  $from = $module_source_dir.fullname
+  $to = $local_modules_dir
+  Write-Host "Copying module $from -> $to"
+  Copy-Item -Recurse -Force -Path $from -Destination $to
 }

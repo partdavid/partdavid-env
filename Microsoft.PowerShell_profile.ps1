@@ -67,11 +67,7 @@ Function prompt {
 
   $gitstatus = Get-GitStatus
 
-  if ($Env:CURRENT_CONTEXT -ne $null) {
-    $position += "$Env:CURRENT_CONTEXT ".length
-    # I want to keep track of the position, so I don't use Write-CurrentContext here
-    Write-Host "$Env:CURRENT_CONTEXT " -ForegroundColor $global:context_color -NoNewLine
-  }
+  $position += Write-CurrentContext
 
   Write-Host "$me" -NoNewLine
   $position += $me.length

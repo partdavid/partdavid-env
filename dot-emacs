@@ -196,7 +196,9 @@
 (add-to-list 'load-path (envhome "emacs.d/yaml-mode"))
 (autoload 'yaml-mode "yaml-mode" "Major mode for editing YAML files")
 (add-to-list 'auto-mode-alist
-  '("\\.ya?ml$" . yaml-mode))
+             '("\\.ya?ml$" . yaml-mode))
+(add-to-list 'auto-mode-alist
+             '("\\.yaml.tmpl$" . yaml-mode))
 
 (add-hook 'yaml-mode-hook
   '(lambda ()
@@ -215,10 +217,11 @@
 ;go
 (setq go-path-directories (list (concat (getenv "HOME") "/go/bin") "/usr/local/go/bin" "/usr/local/bin"))
 (setq go-path-directories-added-p nil)
+(setq gofmt-command "goimports")
 (add-to-list 'load-path (envhome "emacs.d/go-mode"))
 (autoload 'go-mode "go-mode" "Major mode for editing go source")
 (add-to-list 'auto-mode-alist '("\\.go$" . go-mode))
-(add-hook 'before-save-hook #'gofmt-before-save)
+(add-hook 'before-save-hook 'gofmt-before-save)
 
 ;protobuf
 ;protobuf doesn't have an indent level, it does this weird hook thing

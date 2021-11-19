@@ -22,28 +22,41 @@ function Get-ContextConfiguration {
   [CmdletBinding()]
 
   Param(
-    [Parameter(Mandatory=$True)] [String]$Context,
+    [Parameter(Mandatory=$False, Position=0)] [String]$Context,
     [Parameter(Mandatory=$False)] [String[]]$ConfigurationFile = ('~/.config/shell-contexts/contexts.yaml','~/.contexts.yaml')
   )
 
   foreach ($file in @($ConfigurationFile)) {
-    if (Test-Path -Path $file) {
-      $contexts = Get-Content -Raw $file | ConvertFrom-Yaml
-      $config = $contexts[$Context]
+    # -Force required because files are hidden
+    if ($conf = Get-Item -Path $file -Force -ErrorAction ignore) {
+      if ($global:contexts_timestamp -eq $Null -or $conf.LastWriteTime -gt $global:Contexts_Timestamp) {
+        $global:contexts = Get-Content -Raw $file | ConvertFrom-Yaml
+        $global:contexts_timestamp = $conf.LastWriteTime
+      }
     }
   }
+  if ($Context -ne '') {
+    $config = $global:contexts[$Context]
 
-  if ($config -eq $Null) {
-    $config = @{}
+    if ($config -eq $Null) {
+      $config = @{}
+    }
+
+    if ($config.parent -eq $Null) {
+      $config.parent = '_all'
+    }
+
+    $config = Expand-Context -Contexts $contexts -Context $config -ContextName $Context
+
+    $config
+  } else {
+    $configs = @()
+    foreach ($contextname in $global:contexts.Keys) {
+      $myconfig = $global:contexts[$contextname]
+      $configs += Expand-Context -Contexts $contexts -Context $myconfig -ContextName $contextname
+    }
+    $configs
   }
-
-  if ($config.parent -eq $Null) {
-    $config.parent = '_all'
-  }
-
-  $config = Expand-Context -Contexts $contexts -Context $config -ContextName $Context
-
-  $config
 }
 
 function Expand-Context {
@@ -82,10 +95,12 @@ function Expand-Context {
       # The Array-like attribute groups are path, entry and exit
       foreach ($attrgroup in 'path','entry','exit') {
         if ($Parent[$attrgroup]) {
-          if (-not $MyContext[$attrgroup]) {
+          $value = $Parent[$attrgroup]
+          [Array]::Reverse($value)
+          if (-not $MyContext.ContainsKey($attrgroup)) {
             $MyContext[$attrgroup] = @()
           }
-          foreach ($entry in [array]::Reverse($Parent[$attrgroup])) {
+          foreach ($entry in @($value)) {
             if ($MyContext[$attrgroup] -notcontains $entry) {
               $MyContext[$attrgroup] = @($entry) + $MyContext[$attrgroup]
             }
@@ -106,5 +121,6 @@ function Expand-Context {
       }
     }
   }
+  $MyContext['name'] = $ContextName
   $MyContext
 }
