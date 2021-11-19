@@ -29,9 +29,17 @@ function Get-ContextConfiguration {
   foreach ($file in @($ConfigurationFile)) {
     # -Force required because files are hidden
     if ($conf = Get-Item -Path $file -Force -ErrorAction ignore) {
-      if ($global:contexts_timestamp -eq $Null -or $conf.LastWriteTime -gt $global:Contexts_Timestamp) {
-        $global:contexts = Get-Content -Raw $file | ConvertFrom-Yaml
-        $global:contexts_timestamp = $conf.LastWriteTime
+      Write-Debug "Found $file"
+      if ($global:contexts_timestamp -eq $Null -or $conf.LastWriteTime -gt $global:contexts_timestamp) {
+        try {
+          $global:contexts = Get-Content -Raw $file | ConvertFrom-Yaml
+          # Need to check whether this worked? Why doesn't the exception propagate?
+          Write-Debug ("Found new contexts in ${file}: " + ($global:contexts.Keys -join ' '))
+          $global:contexts_timestamp = $conf.LastWriteTime
+          break
+        } catch {
+          Write-Error -Message "Error parsing ${file}: $PSItem" -ErrorAction Stop
+        }
       }
     }
   }
