@@ -118,7 +118,7 @@ function Expand-Context {
       
       # The scalar attribute groups are color
       foreach ($attrgroup in ,'color') {
-        if ($Parent[$attrgroup]) {
+        if ((-not $MyContext[$attrgroup]) -and $Parent[$attrgroup]) {
           $MyContext[$attrgroup] = $Parent[$attrgroup]
         }
       }

@@ -67,6 +67,14 @@ have to be defined in ~/contexts.yaml; but if it's not, Set-CurrentContext
 will simply set the CURRENT_CONTEXT environment variable and take no
 other action.
 
+.PARAMETER ListOnly
+
+Set this parameter to list the names of available contexts instead
+(equivalent to Get-ContextConfiguration | Select-Object -ExpandProperty Name).
+This parameter is provided because users will probably use the 'use'
+alias as an interface to contexts and it's useful to be able to
+'use <context>' and 'use -l'.
+
 .INPUTS
 
 None: Set-CurrentContext does not read from a pipeline.
@@ -122,14 +130,20 @@ function Set-CurrentContext {
   [CmdletBinding()]
 
   Param(
-    [parameter(mandatory=$false, position=0)] [String]$NewContext
+    [parameter(mandatory=$false, position=0)] [String]$NewContext,
+    [parameter(mandatory=$false)] [Switch]$ListOnly
   )
 
-  if ($Env:CURRENT_CONTEXT -ne $null) {
-    Exit-Context -Context $Env:CURRENT_CONTEXT
-  }
+  if ($ListOnly) {
+    Get-ContextConfiguration | Select-Object -ExpandProperty Name
+  } else {
 
-  if ($NewContext -ne "") {
-    Enter-Context -Context $NewContext
+    if ($Env:CURRENT_CONTEXT -ne $null) {
+      Exit-Context -Context $Env:CURRENT_CONTEXT
+    }
+
+    if ($NewContext -ne "") {
+      Enter-Context -Context $NewContext
+    }
   }
 }
