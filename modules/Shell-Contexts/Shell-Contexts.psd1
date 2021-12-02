@@ -4,11 +4,10 @@
 
 @{
   RootModule = 'Shell-Contexts.psm1'
-  ModuleVersion = '0.8.0'
+  ModuleVersion = '1.0.0'
   GUID = 'aa653768-02e2-4805-9a36-1ba494b210e1'
-  Author = 'Jeremy Brinkley'
-  CompanyName = 'Yahoo!'
-  Copyright = '(c) 2021 Yahoo!. All rights reserved.'
+  Author = 'partdavid'
+  Copyright = '(c) 2021 partdavid. All rights reserved.'
   FileList = @(
     'Shell-Contexts.psd1',
     'Shell-Contexts.psm1',
