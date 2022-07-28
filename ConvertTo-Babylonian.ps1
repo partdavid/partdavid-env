@@ -52,6 +52,10 @@ function ConvertTo-Babylonian {
     [Parameter(Position=0)] [ValidateRange('Nonnegative')] [Int]$Number
   )
 
+  if ($Number -eq 0) {
+    return ''
+  }
+
   $digits = [Math]::Floor([Math]::Log($Number) / [Math]::Log(60))
 
   [Int[]]$base60number = $digits .. 0 | `
