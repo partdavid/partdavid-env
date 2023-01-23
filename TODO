@@ -1,0 +1,14 @@
+* Fix up prompt/shell configuration in TRAMP so I don't need to leave
+  my .bash_prompt unconfigured on kitchen [not sure]
+* Probably have a better pattern than just *.sock
+* Make it easier to install environment, verify
+  - What about stuff like .bash_hosts, .emacs_hosts, .contexts.yaml - easy sync? and need a .pwsh_hosts instead of $utilities maybe
+
+* Make this easier (Send-Environment or a variation in installenv.ps1 or something):
+
+    git clone https://github.com/partdavid/partdavid-env
+    cd partdavid-env && ./installenv.ps1
+    pwsh -nologo -noprofile -force -command 'install-module -force powershell-yaml; install-module -force posh-git'
+    # Need a .pwsh_hosts or something for this and some utilities for syncing
+    echo -e "add-pathdirectory '/home/jbrinkley/.pyenv/bin'\nadd-pathdirectory '/home/jbrinkley/.pyenv/shims'" >$utilities ?
+    git clone https://github.com/pyenv/pyenv.git ~/.pyenv

@@ -1,0 +1,31 @@
+TOPIC
+    about_Shell-Contexts
+
+SHORT DESCRIPTION
+    Set "contexts" of various kinds for your shell command-line
+
+LONG DESCRIPTION
+
+    This module allows you to configure named contexts for your shell
+    command-line. It's inspired by and integrates with context
+    managers like rbenv, kubectl context commands, etc.
+
+    The basic idea is that you create a YAML config file at
+    ~/.config/shell-contexts/contexts.yaml which contains a mapping,
+    whose top-level keys are the names of the contexts you'd like to
+    set (e.g. "dev", "production", "python3" or something). When you
+    do 'Set-CurrentContext dev' (usually using the "use" alias), the variable
+    settings you've specified and commands you'd like to run upon
+    entering the context are performed (and reversed when you leave
+    the context). A Cmdlet is provided so you can include the context
+    in your prompt, decorated with the collor you specify.
+
+    The format of the file and how its values work, and how contexts
+    inherit from each other, is documented in Set-CurrentContext, usually
+    aliased to 'use'.
+
+KEYWORDS
+    Contexts
+
+SEE ALSO
+    Set-CurrentContext

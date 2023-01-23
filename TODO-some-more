@@ -1,0 +1,7 @@
+git clone https://github.com/partdavid/partdavid-env
+mkdir -p ~/.emacs.d/server
+# Need a .pwsh_hosts or something for this and some utilities for syncing
+echo -e "add-pathdirectory '/home/jbrinkley/.pyenv/bin'\nadd-pathdirectory '/home/jbrinkley/.pyenv/shims'" >~/.config/powershell/utilities.ps1
+cd partdavid-env && ./installenv.ps1
+pwsh -nologo -noprofile -force -command 'install-module -force powershell-yaml; install-module -force posh-git'
+git clone https://github.com/pyenv/pyenv.git ~/.pyenv

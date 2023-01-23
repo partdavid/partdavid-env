@@ -44,12 +44,14 @@ path
 entry
 
   A sequence of strings, which will be evaluated as commands using
-  Invoke-Expression when switching into the context.
+  Invoke-Expression when switching into the context. See note on
+  Variable Scope, below.
 
 exit
 
   A sequence of strings, which will be evaluated as commands using
-  Invoke-Expression when switching out of the context.
+  Invoke-Expression when switching out of the context. See note on
+  Variable Scope, below.
 
 parent
 
@@ -74,10 +76,6 @@ Set this parameter to list the names of available contexts instead
 This parameter is provided because users will probably use the 'use'
 alias as an interface to contexts and it's useful to be able to
 'use <context>' and 'use -l'.
-
-.INPUTS
-
-None: Set-CurrentContext does not read from a pipeline.
 
 .EXAMPLE
 
@@ -108,7 +106,12 @@ Here's another example, a little more complicated:
     env:
       AWS_PROFILE: contoso-production
     entry:
-      - kubectl use-context web-cluster-$AWS_DEFAULT_REGION
+      - kubectl use-context web-cluster-$Env:AWS_DEFAULT_REGION
+      - Set-AWSCredentials -Scope global $Env:AWS_PROFILE
+      - Set-AWSDefaultRegion -Scope global $Env:AWS_DEFAULT_REGION
+    exit:
+      - Remove-Variable -Scope global StoredAWSCredentials
+      - Remove-Variable -Scope global StoredAWSRegion
   prod-east:
     parent: prod
     env:
@@ -124,6 +127,26 @@ the `stty sane` command when they're entered.
 The "prod-east" context inherits from the "prod" context.
 Note how you can use environment variables in entry/exit
 commands.
+
+.INPUTS
+
+None: Set-CurrentContext does not read from a pipeline.
+
+.NOTES
+
+Variable Scope - Note that the commands in the Shell-Contexts module
+execute in their module scope, not yours. Therefore, while you can
+invoke whatever expression you like under the "entry" and "exit" keys,
+if these commands set variables in the current scope, they will not
+be visible.
+
+Commands that are affected by this, such as the AWS toolkit
+commands Set-DefaultAWSRegion and Set-AWSCredentials (which set
+the variables $StoredAWSRegion and $StoredAWSCredentials respectively),
+may offer a way to escape the scope (passing the -Scope parameter,
+just as you would need to do to use Set-Variable as an entry
+command). This may also require you to do manual fixups of
+these variables for exit
 
 #>
 function Set-CurrentContext {

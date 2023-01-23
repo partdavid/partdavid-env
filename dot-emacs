@@ -177,6 +177,32 @@ Uses `current-date-time-format' for the formatting the date/time."
 ;emacs lisp
 (add-to-list 'auto-mode-alist '("emacs$" . emacs-lisp-mode))
 
+;packages
+(require 'package)
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+(package-initialize)
+
+; https://www.emacswiki.org/emacs/InstallingPackages#h5o-2
+; https://www.gnu.org/software/emacs/manual/html_node/emacs/Package-Installation.html
+; https://melpa.org/#/getting-started
+; https://www.emacswiki.org/emacs/MELPA
+; https://www.emacswiki.org/emacs/TypeScript
+; https://willschenk.com/articles/2021/setting_up_emacs_for_typescript_development/
+; https://redgreenrepeat.com/2018/05/04/typescript-in-emacs/
+;typescript
+(require 'use-package)
+(use-package  tide :ensure t)
+(use-package company :ensure t)
+(use-package flycheck :ensure t)
+(defun setup-tide-mode ()
+  (interactive)
+  (tide-setup)
+  (flycheck-mode +1)
+  (setq flycheck-check-syntax-automatically '(save mode-enabled))
+  (eldoc-mode +1)
+  (tide-hl-identifier-mode +1)
+  (company-mode +1))
+
 ;ruby
 (add-to-list 'load-path (envhome "emacs.d/ruby-mode"))
 (require 'ruby-mode)
