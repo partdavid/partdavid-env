@@ -182,6 +182,10 @@ Uses `current-date-time-format' for the formatting the date/time."
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (package-initialize)
 
+(dolist (package '(use-package))
+  (unless (package-installed-p package)
+    (package-install package)))
+
 ; https://www.emacswiki.org/emacs/InstallingPackages#h5o-2
 ; https://www.gnu.org/software/emacs/manual/html_node/emacs/Package-Installation.html
 ; https://melpa.org/#/getting-started
@@ -191,7 +195,7 @@ Uses `current-date-time-format' for the formatting the date/time."
 ; https://redgreenrepeat.com/2018/05/04/typescript-in-emacs/
 ;typescript
 (require 'use-package)
-(use-package  tide :ensure t)
+(use-package tide :ensure t)
 (use-package company :ensure t)
 (use-package flycheck :ensure t)
 (defun setup-tide-mode ()

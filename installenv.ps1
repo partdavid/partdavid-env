@@ -47,6 +47,7 @@ install-object $emacs_home dot-emacs dot-viper emacs.d
 install-object $HOME dot-bashrc dot-bash_functions dot-bash_prompt dot-bash_aliases dot-vimrc dot-inputrc
 
 # Copy files in bin without removing existing ones
+New-Item -Type Directory "${HOME}/bin" -ErrorAction SilentlyContinue
 Get-ChildItem bin | Copy-Item -Destination "${HOME}/bin" -Recurse
 
 # Copy powershell profile

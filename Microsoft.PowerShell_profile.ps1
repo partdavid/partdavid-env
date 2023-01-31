@@ -35,11 +35,20 @@ if ($IsWindows) {
   $env:USER_ID = id -u
 }
 
+# Standard path stuff, less standard things should maybe go in $utilities
+if (Test-Path /opt/homebrew/bin/brew) {
+  & /opt/homebrew/bin/brew shellenv | Invoke-Expression
+}
+foreach ($dir in '/usr/local/bin',"${HOME}/bin") {
+  Add-PathDirectory $dir
+}
+
 $utilities = Join-Path $HOME -ChildPath '.pwsh_hosts' -AdditionalChildPath "$($env:HOSTNAME).ps1"
 
 if (Test-Path -Path $utilities) {
   . $utilities
 }
+
 
 $babylonian = Join-Path (Split-Path $profile) 'ConvertTo-Babylonian.ps1'
 if (Test-Path -Path $babylonian) {
