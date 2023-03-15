@@ -43,6 +43,12 @@ if ($IsWindows) {
 # emacs
 install-object $emacs_home dot-emacs dot-viper emacs.d
 
+# git
+install-object $HOME dot-gitignore
+if (Get-Command git -ErrorAction SilentlyContinue) {
+  git config --global core.excludesfile "${HOME}/.gitignore"
+}
+
 # Copy other files (bash)
 install-object $HOME dot-bashrc dot-bash_functions dot-bash_prompt dot-bash_aliases dot-vimrc dot-inputrc
 
@@ -59,7 +65,7 @@ if (! $IsWindows) {
   install-object "${HOME}" "./Library/Application Support/iTerm2/DynamicProfiles/partdavid-pwsh.json"
 }
 
-# Install Modules
+# Install Modules (should really be in a better version-qualified path)
 $local_modules_dir = $env:PSModulePath.split([IO.Path]::PathSeparator).where({ $_ -match "$HOME*" }) | Select -First 1
 
 foreach ($module_source_dir in (Get-ChildItem -Path modules)) {

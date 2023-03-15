@@ -334,7 +334,7 @@ Uses `current-date-time-format' for the formatting the date/time."
 
 ;terraform
 ;need to find terraform command
-(setq exec-path (append exec-path '("/usr/local/bin")))
+(setq exec-path (append exec-path '("/usr/local/bin" "/opt/homebrew/bin")))
 
 (add-to-list 'load-path (envhome "emacs.d/terraform-mode"))
 (autoload 'terraform-mode "terraform-mode"

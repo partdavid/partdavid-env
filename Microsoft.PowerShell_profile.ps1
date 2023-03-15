@@ -3,7 +3,7 @@ if (Test-Path -Path $local_modules) {
   $Env:PSModulePath += '{0}{1}' -f [IO.Path]::PathSeparator,$local_modules
 }
 
-foreach ($mod in 'posh-git','powershell-yaml') {
+foreach ($mod in 'posh-git','powershell-yaml','Microsoft.Powershell.SecretManagement') {
   if (Get-Module -Name $mod -ListAvailable) {
     Import-Module $mod
   } else {
@@ -15,6 +15,7 @@ foreach ($mod in 'posh-git','powershell-yaml') {
 # Always available because built-in or I installed it.
 Import-Module PSReadLine
 Import-Module Shell-Contexts
+Import-Module Countdown
 
 # Dvorak key mappings for vi command-line editing
 Set-PSReadLineOption -EditMode Vi
