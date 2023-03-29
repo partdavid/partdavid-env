@@ -184,6 +184,7 @@ Uses `current-date-time-format' for the formatting the date/time."
 
 (dolist (package '(use-package))
   (unless (package-installed-p package)
+    (package-refresh-contents)
     (package-install package)))
 
 ; https://www.emacswiki.org/emacs/InstallingPackages#h5o-2
@@ -348,7 +349,7 @@ Uses `current-date-time-format' for the formatting the date/time."
 
 ;powershell
 (add-to-list 'load-path (envhome "emacs.d/powershell-mode"))
-(autoload 'powershell-mode "powershell-mode"
+(autoload 'powershell-mode "PowerShell-Mode"
   "Major mode for editing powershell files" t)
 (add-to-list 'auto-mode-alist '("\\.ps1\\'" . powershell-mode))
 (add-to-list 'auto-mode-alist '("\\.psm1\\'" . powershell-mode))
