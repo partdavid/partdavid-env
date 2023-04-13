@@ -30,7 +30,7 @@
     PSData = @{
         Tags = @('backblaze','backup')
         # ProjectUri = ''
-    } # End of PSData hashtable
-  } # End of PrivateData hashtable
+    }
+  }
 }
 
