@@ -38,17 +38,22 @@ function Start-B2Session {
     [switch]$NoCheckPrivateKey = $False
   )
 
-  if ($Credential) {
-    $global:B2Credential = $Credential
-  } elseif ($Vault) {
-    $global:B2Credential = { Get-Secret -Vault $Vault $SecretName }
-  } else {
-    $global:B2Credential = Get-Credential
+  $global:B2Parameters = @{
+    PublicKey = $PublicKey
+    PrivateKey = $PrivateKey
   }
 
-  $env:B2_APPLICATION_KEY_ID = $global:B2Credential.UserName
-  $env:B2_APPLICATION_KEY = ConvertFrom-SecureString $global:B2Credential.Password -AsPlainText # :(
-  & b2 authorize-account $global:B2Credential.UserName
+  if ($Credential) {
+    $global:B2Parameters.Credential = $Credential
+  } elseif ($Vault) {
+    $global:B2Parameters.Credential = { Get-Secret -Vault $Vault $SecretName }
+  } else {
+    $global:B2Parameters.Credential = Get-Credential
+  }
+
+  $env:B2_APPLICATION_KEY_ID = $global:B2Parameters.Credential.UserName
+  $env:B2_APPLICATION_KEY = ConvertFrom-SecureString $global:B2Parameters.Credential.Password -AsPlainText # :(
+  & b2 authorize-account $global:B2Parameters.Credential.UserName
   Remove-Item Env:/B2_APPLICATION_KEY,Env:/B2_APPLICATION_KEY_ID
 
   if ($Vault -and $KeySecretName) {
@@ -64,7 +69,7 @@ function Start-B2Session {
       if ($?) {
         Write-Verbose "Overwriting $PublicKey with value from private key $PrivateKey"
         Set-Content $PublicKey $publicKeyValue
-        $global:B2KeyPassphrase = $passphrase
+        $global:B2Parameters.KeyPassphrase = $passphrase
       }
     }
   }

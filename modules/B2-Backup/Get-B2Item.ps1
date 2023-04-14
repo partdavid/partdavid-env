@@ -11,10 +11,18 @@ Gets metadata about backed-up item
 function Get-B2Item {
   [CmdletBinding()]
   param(
-    [Parameter(Mandatory)] [uri[]]$Item,
+    [uri[]]$Item,
     [string]$Bucket,
     [switch]$Recurse
   )
+
+  if (-not $Item -and -not $Bucket) {
+    Write-Error "Need either -Bucket or -Item (or both)"
+  }
+
+  if (-not $Item) {
+    $Item = @('')
+  }
 
   if (-not $Bucket) {
     foreach ($itemUrl in $Item) {
@@ -57,7 +65,7 @@ function Get-B2Item {
       # we don't really want them in the output.
       $entries = & b2 ls --recursive $bucketName $itemPath --json | ConvertFrom-Json
       foreach ($entry in $entries) {
-        $items += [B2ItemInfo]::new('File', $bucketName, $entry)
+        $items += [B2ItemInfo]::new('File', $bucketName, $itemPath, $entry)
       }
     } else {
       $entriesFromFolder = & b2 ls $bucketName $itemPath --json | ConvertFrom-Json
@@ -70,12 +78,12 @@ function Get-B2Item {
           if (($itemPath -eq '' -and $entry.fileName -like '*/*') -or ($entry.fileName -like "${itemPath}/*/*")) {
             # It's an item in a subfolder, apparently included to indicated a folder
             Write-Debug "adding folder"
-            $items += [B2ItemInfo]::new('Folder', $bucketName, $entry)
+            $items += [B2ItemInfo]::new('Folder', $bucketName, $itemPath, $entry)
           } else {
             # It's an entry we want to include, because the item the caller specified is
             # a folder, so the caller wants them all
             Write-Debug "adding entry"
-            $items += [B2ItemInfo]::new('File', $bucketName, $entry)
+            $items += [B2ItemInfo]::new('File', $bucketName, $itemPath, $entry)
           }
         }
       } else {
@@ -90,13 +98,13 @@ function Get-B2Item {
           if ($entry.fileName -in $itemPath,"${itemPath}.enc") {
             # It's our item, so we add it to the items list
             Write-Debug "  adding $($entry.fileName) to results list"
-            $items += [B2ItemInfo]::new('File', $bucketName, $entry)
+            $items += [B2ItemInfo]::new('File', $bucketName, $folder, $entry)
           } elseif ($entry.fileName -notlike "${folder}/*/*") {
             # It's not an entry we got to represent a folder, but it
             # might be the key for our item, so we add it to the
             # extras list
             Write-Debug "  adding $($entry.fileName) to extras list"
-            $extraItems += [B2ItemInfo]::new('File', $bucketName, $entry)
+            $extraItems += [B2ItemInfo]::new('File', $bucketName, $folder, $entry)
           } else {
             # It's a subfolder, but we're not interested
             Write-Debug "  ignoring subfolder $($entry.fileName)"
@@ -135,31 +143,74 @@ class B2ItemInfo {
   [B2ItemType]$ItemType
   [string]$Name
   [string]$Bucket
-  [object]$OriginalB2Object
-  [bool]$Encrypted
+  [string]$RelativeTo = ''
+  [bool]$Encrypted = $False
   [string]$DecryptedName
   [string]$KeyFile
+  [object]$OriginalB2Object
+
+  hidden Init() {
+    if ($this.ItemType -eq 'File') {
+      $this.Name = $this.OriginalB2Object.fileName
+      if ($this.OriginalB2Object.fileName -like '*.enc') {
+        $this.Encrypted = $True
+        # We can't know if a keyfile exists that we can point to, so we have to leave it unset for now
+        $this.DecryptedName = $this.OriginalB2Object.fileName -replace '\.enc$',''
+      }
+    } elseif ($this.ItemType -eq 'Folder') {
+      $this.Name = Split-Path $this.OriginalB2Object.fileName
+    }
+  }
 
   B2ItemInfo(
-    [string]$ItemType,
+    [B2ItemType]$ItemType,
+    [string]$Bucket,
+    [string]$RelativeTo,
+    [object]$B2Object
+  ){
+    $this.ItemType = $ItemType
+    $this.OriginalB2Object = $B2Object
+    $this.Bucket = $Bucket
+    $this.RelativeTo = $RelativeTo
+
+    $this.Init()
+  }
+
+  B2ItemInfo(
+    [B2ItemType]$ItemType,
     [string]$Bucket,
     [object]$B2Object
   ){
     $this.ItemType = $ItemType
     $this.OriginalB2Object = $B2Object
     $this.Bucket = $Bucket
-    $this.Encrypted = $False
 
-    if ($ItemType -eq 'File') {
-      $this.Name = $B2Object.fileName
-      if ($B2Object.fileName -like '*.enc') {
-        $this.Encrypted = $True
-        # We can't know if a keyfile exists that we can point to, so we have to leave it unset for now
-        $this.DecryptedName = $B2Object.fileName -replace '\.enc$',''
-      }
-    } elseif ($ItemType -eq 'Folder') {
-      $this.Name = Split-Path $B2Object.fileName
+    $this.Init()
+  }
+
+  B2ItemInfo(
+    [B2ItemType]$ItemType,
+    [object]$B2Object
+  ){
+    $this.ItemType = $ItemType
+    $this.OriginalB2Object = $B2Object
+    $this.Bucket = Get-BucketName -Id $B2Object.bucketId
+  }
+
+}
+
+function Get-BucketName {
+  [CmdletBinding()]
+  param(
+    [Parameter(Mandatory)] [string]$Id
+  )
+
+  if (-not $global:B2Parameters.BucketNames) {
+    $global:B2Parameters.BucketNames = @{}
+    & b2 list-buckets --json | ConvertFrom-Json | %{
+      $global:B2Parameters.BucketNames[$_.bucketId] = $_.bucketName
     }
   }
 
+  $global:B2Parameters.BucketNames[$Id]
 }

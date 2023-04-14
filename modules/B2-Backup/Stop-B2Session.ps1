@@ -11,7 +11,5 @@ Removes credentials from the session.
 function Stop-B2Session {
   [CmdletBinding()]param()
 
-  Remove-Variable -Scope global -Name B2Credential
-  Remove-Variable -Scope global -Name B2KeyPassphrase
-  Remove-Variable -Scope global -Name B2BucketNames
+  Remove-Variable -Scope global -Name B2Parameters -ErrorAction SilentlyContinue
 }
