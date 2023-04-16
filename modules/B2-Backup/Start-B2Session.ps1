@@ -33,9 +33,10 @@ function Start-B2Session {
     [string]$Vault,
     [string]$SecretName = 'B2Credential',
     [string]$KeySecretName = 'B2BackupKey',
+    [string[]]$Recipients,
     [string]$PublicKey = "${HOME}/.b2/key.pub",
     [string]$PrivateKey = "${HOME}/.b2/key",
-    [switch]$NoCheckPrivateKey = $False
+    [switch]$InsecureLegacy
   )
 
   $global:B2Parameters = @{
@@ -56,26 +57,41 @@ function Start-B2Session {
   & b2 authorize-account $global:B2Parameters.Credential.UserName
   Remove-Item Env:/B2_APPLICATION_KEY,Env:/B2_APPLICATION_KEY_ID
 
-  if ($Vault -and $KeySecretName) {
-    Get-Secret -Vault $Vault $KeySecretName | Set-Content $PrivateKey
-  }
-
-  if (-not (Test-Path $PrivateKey)) {
-    Write-Warning "Cannot restore files without RSA private key $PrivateKey"
-  } else {
-    if (-not $NoCheckPrivateKey) {
-      $passphrase = Read-Host -Prompt "Passphrase for $PrivateKey" -AsSecureString
-      $publicKeyValue = ConvertFrom-SecureString $passphrase -AsPlainText | & openssl rsa -in $PrivateKey -pubout -passin stdin
-      if ($?) {
-        Write-Verbose "Overwriting $PublicKey with value from private key $PrivateKey"
-        Set-Content $PublicKey $publicKeyValue
-        $global:B2Parameters.KeyPassphrase = $passphrase
+  if ($InsecureLegacy) {
+    if (-not (Test-Path $PrivateKey)) {
+      Write-Warning "Cannot restore files without RSA private key $PrivateKey"
+    } else {
+      if (-not $NoCheckPrivateKey) {
+        $passphrase = Read-Host -Prompt "Passphrase for $PrivateKey" -AsSecureString
+        $publicKeyValue = ConvertFrom-SecureString $passphrase -AsPlainText | & openssl rsa -in $PrivateKey -pubout -passin stdin
+        if ($?) {
+          Write-Verbose "Overwriting $PublicKey with value from private key $PrivateKey"
+          Set-Content $PublicKey $publicKeyValue
+          $global:B2Parameters.KeyPassphrase = $passphrase
+        }
       }
+    }
+
+    if (-not (Test-Path $PublicKey)) {
+      Write-Warning "Cannot backup files without RSA public key $PublicKey"
     }
   }
 
-  if (-not (Test-Path $PublicKey)) {
-    Write-Warning "Cannot backup files without RSA public key $PublicKey"
+  if (! $Recipients) {
+    # By default, we use the list of ultimately trusted keys, because
+    # that's probably you. But we still print a warning, since you didn't
+    # specify -Recipients
+    $Recipients = gpg --list-keys --with-colons | %{
+      $f = $_ -split ':'
+      if ($f[0] -eq 'uid' -and $f[1] -eq 'u') {
+        $f[9] -replace '.*(<[^>]*>).*','$1'
+      }
+    }
+    if ($Recipients.Count -gt 0) {
+      Write-Warning "No -Recipients specified, using default list of ultimately trusted keys: $($Recipients -join ', ')"
+      $global:B2Parameters.Recipients = $Recipients
+    } else {
+      Write-Warning "No -Recipients specified and no keys are ultimately trusted: Backup-B2Item and Update-B2Key will require -Recipients"
+    }
   }
-
 }

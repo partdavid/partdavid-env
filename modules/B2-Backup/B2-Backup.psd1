@@ -6,18 +6,19 @@
   Copyright = '(c) partdavid@gmail.com. All rights reserved.'
   Description = 'Utilities to use BackBlaze (B2) cloud storage for backups'
   FunctionsToExport = @(
-    'Start-B2Session',
-    'Stop-B2Session',
-    'Get-B2Item',
-    'Backup-B2Item',
-    'Restore-B2Item',
-    'Remove-B2Item',
+    'Start-B2Session'
+    'Stop-B2Session'
+    'Get-B2Item'
+    'Backup-B2Item'
+    'Restore-B2Item'
+    'Remove-B2Item'
     'Update-B2Key'
+    'Format-Path'
   )
   AliasesToExport = @()
   FileList = @(
-    'B2-Backup.psd1',
-    'B2-Backup.psm1',
+    'B2-Backup.psd1'
+    'B2-Backup.psm1'
     'Start-B2Session.ps1'
     'Stop-B2Session.ps1'
     'Get-B2Item.ps1'
@@ -33,4 +34,5 @@
     }
   }
 }
+
 
