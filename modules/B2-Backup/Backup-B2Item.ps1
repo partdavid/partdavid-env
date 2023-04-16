@@ -79,7 +79,7 @@ function Backup-B2Item {
       if ($Container) {
         $oldPWD = $PWD
         Set-Location $relativeRoot
-        $relativePath = (Resolve-Path -Relative $Item.FullName) -replace '^\./'
+        $relativePath = Format-Path (Resolve-Path -Relative $Item.FullName)
         Set-Location $oldPWD
         Write-Debug "relativePath = '$relativePath'"
         $targetPath = $DestinationPath ? (Join-Path $DestinationPath $relativePath) : $relativePath
@@ -92,8 +92,12 @@ function Backup-B2Item {
         $recipientOpts = ($Recipients | %{ "--recipient $_" }) -join ' '
         # gpg will prompt for passphrase if needed
         Write-Debug "<key> | gpg --batch --yes --encrypt $recipientOpts --output $($item.FullName).key.enc"
+        $key | gpg --batch --yes --encrypt @recipentOpts --output "$($item.FullName).key.enc"
         # TODO: --passphrase-fd works on Windows? Maybe there we need to use --passphrase <key> :(
-        Write-Debug "<key> | gpg --batch --yes --symmetric --passphrase-fd 0 --no-symkey-cache --pinentry-mode loopback --compression-algo none --output $($item.FullName).enc $($item.FullName)"
+        Write-Debug "<key> | gpg --batch --yes --symmetric --passphrase-fd 0 --no-symkey-cache --pinentry-mode loopback --compression-algo none --cipher-algo AES256 --output $($item.FullName).enc $($item.FullName)"
+        $key | gpg --batch --yes --symmetric --passphrase-fd 0 --no-symkey-cache --pinentry-mode loopback --compression-algo none --cipher-algo AES256 --output "$($item.FullName).enc" $item.FullName
+        b2 upload-file $Bucket "$($item.FullName).enc" "${targetPath}.enc"
+        b2 upload-file $Bucket "$($item.FullName).key.enc" "${targetPath}.enc"
         [PSCustomObject]@{
           source = "$($item.FullName).enc"
           bucket = $Bucket
@@ -105,6 +109,7 @@ function Backup-B2Item {
           destination = "${targetPath}.key.enc"
         }
       } else {
+        b2 upload-file $Bucket $item.FullName $targetPath
         [PSCustomObject]@{
           source = $item.FullName
           bucket = $Bucket
