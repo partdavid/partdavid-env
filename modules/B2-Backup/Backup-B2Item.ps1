@@ -6,6 +6,7 @@ function Backup-B2Item {
     [string[]]$Path,                 # Get-ChildItem
     [Parameter(Mandatory, ParameterSetName='LiteralPath', ValueFromPipelineByPropertyName)]
     [string[]]$LiteralPath,          # Get-ChildItem
+    [Parameter(Position=1)]
     [ValidateScript({$_.Scheme -eq 'b2' -or $_.Scheme -eq $Null })] [uri]$Destination = '/',
     [string]$Bucket,
     [bool]$Container = $True,        # Preserve directory structure, TODO: change Restore-B2Item to honor this option
@@ -26,7 +27,7 @@ function Backup-B2Item {
       'Exclude'
       'Recurse'
     )
-    if ($Destination.Host -and ($Destination.Host -ne $Bucket)) {
+    if ($Destination.Host -and $Bucket -and ($Destination.Host -ne $Bucket)) {
       throw "Destination is URL that contains bucket name but -Bucket $Bucket was provided"
     }
     if ($Destination.Host -eq $Null -and -not $Bucket) {
@@ -40,7 +41,9 @@ function Backup-B2Item {
       }
     }
 
-    $Bucket ??= $Destination.Host
+    if ($Bucket -eq $Null -or $Bucket -eq '') {
+      $Bucket = $Destination.Host
+    }
     $DestinationPath = ($Destination.AbsolutePath ?? $Destination.OriginalString).TrimStart('/')
   }
 
@@ -89,31 +92,38 @@ function Backup-B2Item {
       Write-Debug "bucket / targetPath = $Bucket / $($targetPath.GetType())($targetPath)"
       if (-not $NoEncrypt) {
         $key = [Convert]::ToBase64String((Get-Random -Max 255 -Count 32))
-        $recipientOpts = ($Recipients | %{ "--recipient $_" }) -join ' '
+        $recipientOpts = ($Recipients | %{ "--recipient",$_ }) -join ' '
         # gpg will prompt for passphrase if needed
         Write-Debug "<key> | gpg --batch --yes --encrypt $recipientOpts --output $($item.FullName).key.enc"
-        $key | gpg --batch --yes --encrypt @recipentOpts --output "$($item.FullName).key.enc"
+        if ($PSCmdlet.ShouldProcess("<key (dek)>", "encrypt to $($item.FullName).key.enc")) {
+          $key | & gpg --batch --yes --encrypt $recipientOpts --output "$($item.FullName).key.enc"
+        }
         # TODO: --passphrase-fd works on Windows? Maybe there we need to use --passphrase <key> :(
         Write-Debug "<key> | gpg --batch --yes --symmetric --passphrase-fd 0 --no-symkey-cache --pinentry-mode loopback --compression-algo none --cipher-algo AES256 --output $($item.FullName).enc $($item.FullName)"
-        $key | gpg --batch --yes --symmetric --passphrase-fd 0 --no-symkey-cache --pinentry-mode loopback --compression-algo none --cipher-algo AES256 --output "$($item.FullName).enc" $item.FullName
-        b2 upload-file $Bucket "$($item.FullName).enc" "${targetPath}.enc"
-        b2 upload-file $Bucket "$($item.FullName).key.enc" "${targetPath}.enc"
-        [PSCustomObject]@{
-          source = "$($item.FullName).enc"
-          bucket = $Bucket
-          destination = "${targetPath}.enc"
+        if ($PSCmdlet.ShouldProcess($item.FullName, "encrypt to $($item.FullName).enc with $($item.FullName).key")) {
+          $key | & gpg --batch --yes --symmetric --passphrase-fd 0 --no-symkey-cache --pinentry-mode loopback --compression-algo none --cipher-algo AES256 --output "$($item.FullName).enc" $item.FullName
         }
-        [PSCustomObject]@{
-          source = "$($item.FullName).key.enc"
-          bucket = $Bucket
-          destination = "${targetPath}.key.enc"
+        if ($PSCmdlet.ShouldProcess("$($item.FullName).enc", "upload to $Bucket ${targetPath}.enc")) {
+          Write-Debug "b2 upload-file $Bucket $($item.FullName).enc ${targetPath}.enc"
+          $result = & b2 upload-file --quiet $Bucket "$($item.FullName).enc" "${targetPath}.enc" | ConvertFrom-Json
+          Add-Member -InputObject $result -NotePropertyName Source -NotePropertyValue "$($item.FullName).enc"
+          Add-Member -InputObject $result -NotePropertyName Destination -NotePropertyValue "${targetPath}.enc"
+          Write-Output $result
+        }
+        if ($PSCmdlet.ShouldProcess("$($item.FullName).key.enc", "upload to $Bucket ${targetPath}.key.enc")) {
+          Write-Debug "b2 upload-file $Bucket $($item.FullName).key.enc ${targetPath}.enc"
+          $result = & b2 upload-file --quiet $Bucket "$($item.FullName).key.enc" "${targetPath}.key.enc" | ConvertFrom-Json
+          Add-Member -InputObject $result -NotePropertyName Source -NotePropertyValue "$($item.FullName).key.enc"
+          Add-Member -InputObject $result -NotePropertyName Destination -NotePropertyValue "${targetPath}.key.enc"
+          Write-Output $result
         }
       } else {
-        b2 upload-file $Bucket $item.FullName $targetPath
-        [PSCustomObject]@{
-          source = $item.FullName
-          bucket = $Bucket
-          destination = $targetPath
+        if ($PSCmdlet.ShouldProcess($item.FullName, "upload to $Bucket $targetPAth")) {
+          Write-Debug "b2 upload-file $Bucket $item.FullName $targetPath"
+          $result = & b2 upload-file --quiet $Bucket $item.FullName $targetPath | ConvertFrom-Json
+          Add-Member -InputObject $result -NotePropertyName Source -NotePropertyValue $item.FullName
+          Add-Member -InputObject $result -NotePropertyName Destination -NotePropertyValue $targetPath
+          Write-Output $result
         }
       }
     }
