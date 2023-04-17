@@ -15,6 +15,7 @@ function Backup-B2Item {
     [string[]]$Exclude,              # Get-ChildItem
     [switch]$Recurse,                # Get-ChildItem
     [switch]$NoEncrypt,
+    [switch]$NoClean,
     [string[]]$Recipients
   )
 
@@ -92,35 +93,52 @@ function Backup-B2Item {
       Write-Debug "bucket / targetPath = $Bucket / $($targetPath.GetType())($targetPath)"
       if (-not $NoEncrypt) {
         $key = [Convert]::ToBase64String((Get-Random -Max 255 -Count 32))
-        $recipientOpts = ($Recipients | %{ "--recipient",$_ }) -join ' '
+        $recipientOpts = ($Recipients | %{ "--recipient=$_" }) -join ' '
         # gpg will prompt for passphrase if needed
         Write-Debug "<key> | gpg --batch --yes --encrypt $recipientOpts --output $($item.FullName).key.enc"
         if ($PSCmdlet.ShouldProcess("<key (dek)>", "encrypt to $($item.FullName).key.enc")) {
           $key | & gpg --batch --yes --encrypt $recipientOpts --output "$($item.FullName).key.enc"
+          if (-not $?) {
+            throw "Error from gpg --batch --yes --encrypt $recipientOpts --output $($item.FullName).key.enc"
+          }
         }
         # TODO: --passphrase-fd works on Windows? Maybe there we need to use --passphrase <key> :(
         Write-Debug "<key> | gpg --batch --yes --symmetric --passphrase-fd 0 --no-symkey-cache --pinentry-mode loopback --compression-algo none --cipher-algo AES256 --output $($item.FullName).enc $($item.FullName)"
         if ($PSCmdlet.ShouldProcess($item.FullName, "encrypt to $($item.FullName).enc with $($item.FullName).key")) {
           $key | & gpg --batch --yes --symmetric --passphrase-fd 0 --no-symkey-cache --pinentry-mode loopback --compression-algo none --cipher-algo AES256 --output "$($item.FullName).enc" $item.FullName
         }
+        Write-Debug "b2 upload-file $Bucket $($item.FullName).enc ${targetPath}.enc"
         if ($PSCmdlet.ShouldProcess("$($item.FullName).enc", "upload to $Bucket ${targetPath}.enc")) {
-          Write-Debug "b2 upload-file $Bucket $($item.FullName).enc ${targetPath}.enc"
-          $result = & b2 upload-file --quiet $Bucket "$($item.FullName).enc" "${targetPath}.enc" | ConvertFrom-Json
+          $result = & b2 upload-file --noProgress --quiet $Bucket "$($item.FullName).enc" "${targetPath}.enc" | `
+            ConvertFrom-Json
           Add-Member -InputObject $result -NotePropertyName Source -NotePropertyValue "$($item.FullName).enc"
           Add-Member -InputObject $result -NotePropertyName Destination -NotePropertyValue "${targetPath}.enc"
           Write-Output $result
+          if (-not $NoClean) {
+            Remove-Item "$($item.FullName).enc"
+          }
         }
+        Write-Debug "b2 upload-file $Bucket $($item.FullName).key.enc ${targetPath}.enc"
         if ($PSCmdlet.ShouldProcess("$($item.FullName).key.enc", "upload to $Bucket ${targetPath}.key.enc")) {
-          Write-Debug "b2 upload-file $Bucket $($item.FullName).key.enc ${targetPath}.enc"
-          $result = & b2 upload-file --quiet $Bucket "$($item.FullName).key.enc" "${targetPath}.key.enc" | ConvertFrom-Json
+          $result = & b2 upload-file --noProgress --quiet $Bucket "$($item.FullName).key.enc" "${targetPath}.key.enc" | `
+            ConvertFrom-Json
+          if (-not $?) {
+            throw "File not uploaded: $($item.FullName).key.enc"
+          }
           Add-Member -InputObject $result -NotePropertyName Source -NotePropertyValue "$($item.FullName).key.enc"
           Add-Member -InputObject $result -NotePropertyName Destination -NotePropertyValue "${targetPath}.key.enc"
           Write-Output $result
+          if (-not $NoClean) {
+            Remove-Item "$($item.FullName).key.enc"
+          }
         }
       } else {
+        Write-Debug "b2 upload-file $Bucket $item.FullName $targetPath"
         if ($PSCmdlet.ShouldProcess($item.FullName, "upload to $Bucket $targetPAth")) {
-          Write-Debug "b2 upload-file $Bucket $item.FullName $targetPath"
           $result = & b2 upload-file --quiet $Bucket $item.FullName $targetPath | ConvertFrom-Json
+          if (-not $?) {
+            throw "File not uploaded: $($item.FullName)"
+          }
           Add-Member -InputObject $result -NotePropertyName Source -NotePropertyValue $item.FullName
           Add-Member -InputObject $result -NotePropertyName Destination -NotePropertyValue $targetPath
           Write-Output $result

@@ -42,36 +42,62 @@ function Restore-B2Item {
   }
   if (-not $NoDecrypt) {
     foreach ($b2item in $b2items) {
-      if ($b2item.Encrypted -and $b2item.KeyFile) {
-        $localName = $localPath.Invoke($b2item.Name, $b2item.RelativeTo)
-        $localDecryptedName = $localPath.Invoke($b2item.DecryptedName, $b2item.RelativeTo)
-        $localKeyFile = $localPath.Invoke($b2item.KeyFile, $b2item.RelativeTo)
-        if ((Test-Path $localKeyFile) -and $InsecureLegacy) {
-          # This is the "legacy" method used for only a handful of files in private store in 2021.
-          # The problem is that the symmetric key was generated with base64 encoding, then RSA used
-          # to encrypt it, and the file was encrypted using -kfile so that only the first line of
-          # the base64-encoded symmetric key was used. That's not enough key material: indeed, only
-          # 177 bits of randomness were used in the first place due to base64 padding, and then only
-          # the first line of the file was used due to how -kfile works. But that's how this handful
-          # of files were encrypted, and I had to figure out the broken protocal from a few years ago,
-          # so that's why this exists. This error is not supported for encryption, of course.
-          #
-          # The cure is possibly to use gpg --symmetric which may be a little more ergonomic, and
-          # gpg offers encryption to multiple recipients (for the keyfile) which may ease key rotation
-          # and other access concerns.
-          if ($global:B2Parameters.KeyPassphrase) {
-            Write-Debug ("<passphrase> | openssl rsautl -decrypt -in $localKeyFile " + `
-              "-inkey $($global:B2Parameters.PrivateKey) -passin stdin")
-            $symmetricKey = ConvertFrom-SecureString $global:B2Parameters.KeyPassphrase -AsPlainText | `
-              & openssl rsautl -decrypt -in $localKeyFile -inkey $global:B2Parameters.PrivateKey -passin stdin
+      if ($b2item.Encrypted) {
+        if ($b2item.KeyFile) {
+          $localName = $localPath.Invoke($b2item.Name, $b2item.RelativeTo)
+          $localDecryptedName = $localPath.Invoke($b2item.DecryptedName, $b2item.RelativeTo)
+          $localKeyFile = $localPath.Invoke($b2item.KeyFile, $b2item.RelativeTo)
+          if ($InsecureLegacy) {
+            # This is the "legacy" method used for only a handful of files in private store in 2021.
+            # The problem is that the symmetric key was generated with base64 encoding, then RSA used
+            # to encrypt it, and the file was encrypted using -kfile so that only the first line of
+            # the base64-encoded symmetric key was used. That's not enough key material: indeed, only
+            # 177 bits of randomness were used in the first place due to base64 padding, and then only
+            # the first line of the file was used due to how -kfile works. But that's how this handful
+            # of files were encrypted, and I had to figure out the broken protocal from a few years ago,
+            # so that's why this exists. This error is not supported for encryption, of course.
+            #
+            # The cure is possibly to use gpg --symmetric which may be a little more ergonomic, and
+            # gpg offers encryption to multiple recipients (for the keyfile) which may ease key rotation
+            # and other access concerns.
+            if ($global:B2Parameters.KeyPassphrase) {
+              Write-Debug ("<passphrase> | openssl rsautl -decrypt -in $localKeyFile " + `
+                "-inkey $($global:B2Parameters.PrivateKey) -passin stdin")
+              $symmetricKey = ConvertFrom-SecureString $global:B2Parameters.KeyPassphrase -AsPlainText | `
+                & openssl rsautl -decrypt -in $localKeyFile -inkey $global:B2Parameters.PrivateKey -passin stdin
+              if (-not $?) {
+                throw "Error running: <passphrase> | openssl rsautl -decrypt -in $localKeyFile -inkey $($global:B2Parameters.PrivateKey) -passin stdin"
+              }
+            } else {
+              Write-Debug "openssl rsautil -decrypt -in $localKeyFile -inkey $($global:B2Parameters.PrivateKey)"
+              $symmetricKey = & openssl rsautl -decrypt -in $localKeyFile -inkey $global:B2Parameters.PrivateKey
+              if (-not $?) {
+                throw "Error running: openssl rsautl -decrypt -in $localKeyFile -inkey $($global:B2Parameters.PrivateKey)"
+              }
+            }
+            Write-Debug "<key> | openssl enc -v -aes-256-cbc -salt -d -a -kfile /dev/fd/0 -out $localDecryptedName -in $localName"
+            if ($PSCmdlet.ShouldProcess(
+                  $localName,
+                  "<key> | openssl enc -v -aes-256-cbc -salt -d -a -kfile /dev/fd/0 -out $localDecryptedName -in")) {
+                    $symmetricKey | & openssl enc -v -aes-256-cbc -salt -d -a -kfile /dev/fd/0 `
+                      -out $localDecryptedName -in $localName
+                    if (-not $?) {
+                      throw "Error running: openssl enc -v -aes-256-cbc -salt -d -a -kfile /dev/fd/0 -out $localDecryptedName -in $localName"
+                    }
+                  }
           } else {
-            Write-Debug "openssl rsautil -decrypt -in $localKeyFile -inkey $($global:B2Parameters.PrivateKey)"
-            $symmetricKey = & openssl rsautl -decrypt -in $localKeyFile -inkey $global:B2Parameters.PrivateKey
-          }
-          Write-Debug "<key> | openssl enc -v -aes-256-cbc -salt -d -a -kfile /dev/fd/0 -out $localDecryptedName -in $localName"
-          if ($PSCmdlet.ShouldProcess(
-                $localName, "<key> | openssl enc -v -aes-256-cbc -salt -d -a -kfile /dev/fd/0 -out $localDecryptedName -in")) {
-            $symmetricKey |  & openssl enc -v -aes-256-cbc -salt -d -a -kfile /dev/fd/0 -out $localDecryptedName -in $localName
+            # This is the new method based on GPG.
+            Write-Debug "gpg --quiet --decrypt $localKeyFile | gpg --batch --yes --decrypt --passphrase-fd 0 --pinentry-mode loopback --output $localDecryptedName $localName"
+            if ($PSCmdlet.ShouldProcess($localName, "decrypt symmetric key $localKeyfile to decrypt to $localDecryptedName")) {
+              & gpg --quiet --decrypt $localKeyFile | & gpg --batch --yes --decrypt --passphrase-fd 0 --pinentry-mode loopback --output $localDecryptedName $localName
+              if (-not $?) {
+                throw "Error from gpg while runnng: gpg --quiet --decrypt $localKeyFile | gpg --batch --yes --decrypt --passphrase-fd 0 --pinentry-mode loopback --output $localDecryptedName $localName"
+              }
+              if (-not $NoClean) {
+                Remove-Item $localKeyFile
+                Remove-Item $localName
+              }
+            }
           }
         }
       }
