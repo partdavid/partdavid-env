@@ -1,6 +1,6 @@
 @{
   RootModule = '1Password-Utilities.psm1'
-  ModuleVersion = '1.0'
+  ModuleVersion = '1.1'
   GUID = 'aaf7eeee-1df2-49ac-9c9e-826cbe6c0bf9'
   Author = 'partdavid'
   Copyright = '(c) partdavid. All rights reserved.'

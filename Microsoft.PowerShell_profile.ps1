@@ -44,6 +44,38 @@ foreach ($dir in '/usr/local/bin',"${HOME}/bin") {
   Add-PathDirectory $dir
 }
 
+# The version of this file produces a broken asdf function
+# $asdf_env = "$(brew --prefix asdf)/libexec/asdf.ps1"
+# if (Test-Path $asdf_env) {
+#   . $asdf_env
+# }
+$Env:ASDF_DIR = "$(brew --prefix asdf)/libexec"
+if (Test-Path "$($Env:ASDF_DIR)/bin") {
+  Add-PathDirectory "$($Env:ASDF_DIR)/bin"
+  if ($null -eq $Env:ASDF_DATA_DIR -or $Env:ASDF_DATA_DIR -eq '') {
+    $_asdf_shims = "${Env:HOME}/.asdf/shims"
+  } else {
+    $_asdf_shims = "$($Env:ASDF_DATA_DIR)/shims"
+  }
+  Add-PathDirectory $_asdf_shims
+  Remove-Variable -Force _asdf_shims -ErrorAction SilentlyContinue
+
+  # I would do this with a conforming advanced function (Invoke-ASDF
+  # and an alias) but this should be removed when the upstream
+  # is fixed and it will work the same way.
+  function asdf {
+    $asdf = Get-Command -CommandType Application asdf | Select-Object -First 1 -ExpandProperty Source
+    if ($args.Count -gt 0 -and $args[0] -eq 'shell') {
+      Invoke-Expression $(& $asdf 'export-shell-version' pwsh $args[1..($args.Count + -1)])
+    }
+    else {
+      & $asdf $args
+    }
+  }
+
+  # Maybe put some code in $utilities for the plugins you like
+}
+
 $utilities = Join-Path $HOME -ChildPath '.pwsh_hosts' -AdditionalChildPath "$($env:HOSTNAME).ps1"
 
 if (Test-Path -Path $utilities) {
@@ -148,67 +180,4 @@ Function prompt {
   $global:LASTEXITCODE = $realLASTEXITCODE
   return "> "
 }
-
 Set-Alias rn Rename-Item
-
-# Hack until I add a .ps1 version for rbenv/pyenv shell support
-Remove-Alias -Name rbenv -ErrorAction ignore
-$RBENV_EXE = (Get-Command rbenv -ErrorAction ignore).source
-
-Remove-Alias -Name pyenv -ErrorAction ignore
-$PYENV_EXE = (Get-Command pyenv -ErrorAction ignore).source
-
-Function Invoke-Rbenv {
-  [CmdletBinding()]
-  Param(
-    [parameter(mandatory=$false, position=0, ValueFromRemainingArguments=$true)] $Remaining
-  )
-
-  if ($Remaining -ne $Null -and $Remaining[0] -in 'shell') {
-    if ($Remaining[1]) {
-      if ($Remaining[1] -match '--unset') {
-        Remove-Item -Path Env:RBENV_VERSION -ErrorAction ignore
-      } else {
-        $Env:RBENV_VERSION = $Remaining[1]
-      }
-    } else {
-      if (Test-Path Env:RBENV_VERSION) {
-        Write-Output $Env:RBENV_VERSION
-      } else {
-        Write-Output "rbenv: no shell version configured for this session"
-      }
-    }
-  } else {
-    & $RBENV_EXE @Remaining
-  }
-}
-
-# TODO: implement this kind of thing as a closure
-Function Invoke-Pyenv {
-  [CmdletBinding()]
-  Param(
-    [parameter(mandatory=$false, position=0, ValueFromRemainingArguments=$true)] $Remaining
-  )
-
-  if ($Remaining -ne $Null -and $Remaining[0] -in 'shell') {
-    if ($Remaining[1]) {
-      if ($Remaining[1] -match '--unset') {
-        Remove-Item -Path Env:PYENV_VERSION -ErrorAction ignore
-      } else {
-        $Env:PYENV_VERSION = $Remaining[1]
-      }
-    } else {
-      if (Test-Path Env:PYENV_VERSION) {
-        Write-Output $Env:PYENV_VERSION
-      } else {
-        Write-Output "pyenv: no shell version configured for this session"
-      }
-    }
-  } else {
-    & $PYENV_EXE @Remaining
-  }
-}
-
-Set-Alias -Name rbenv -Value Invoke-Rbenv
-Set-Alias -Name pyenv -Value Invoke-Pyenv
-

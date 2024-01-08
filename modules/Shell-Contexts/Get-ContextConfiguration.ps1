@@ -32,9 +32,9 @@ function Get-ContextConfiguration {
       Write-Debug "Found $file"
       if ($global:contexts_timestamp -eq $Null -or $conf.LastWriteTime -gt $global:contexts_timestamp) {
         try {
-          $global:contexts = Get-Content -Raw $file | ConvertFrom-Yaml
+          $global:contexts_data = Get-Content -Raw $file | ConvertFrom-Yaml
           # Need to check whether this worked? Why doesn't the exception propagate?
-          Write-Debug ("Found new contexts in ${file}: " + ($global:contexts.Keys -join ' '))
+          Write-Debug ("Found new contexts in ${file}: " + ($global:contexts_data.Keys -join ' '))
           $global:contexts_timestamp = $conf.LastWriteTime
           break
         } catch {
@@ -44,7 +44,7 @@ function Get-ContextConfiguration {
     }
   }
   if ($Context -ne '') {
-    $config = $global:contexts[$Context]
+    $config = $global:contexts_data[$Context]
 
     if ($config -eq $Null) {
       $config = @{}
@@ -54,14 +54,14 @@ function Get-ContextConfiguration {
       $config.parent = '_all'
     }
 
-    $config = Expand-Context -Contexts $contexts -Context $config -ContextName $Context
+    $config = Expand-Context -Contexts $contexts_data -Context $config -ContextName $Context
 
     $config
   } else {
     $configs = @()
-    foreach ($contextname in $global:contexts.Keys) {
-      $myconfig = $global:contexts[$contextname]
-      $configs += Expand-Context -Contexts $contexts -Context $myconfig -ContextName $contextname
+    foreach ($contextname in $global:contexts_data.Keys) {
+      $myconfig = $global:contexts_data[$contextname]
+      $configs += Expand-Context -Contexts $contexts_data -Context $myconfig -ContextName $contextname
     }
     $configs
   }

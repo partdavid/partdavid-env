@@ -207,6 +207,12 @@ Uses `current-date-time-format' for the formatting the date/time."
   (tide-hl-identifier-mode +1)
   (company-mode +1))
 
+;elixir-mode (not elixir-ls)
+;https://github.com/elixir-editors/emacs-elixir
+(use-package elixir-mode :ensure t)
+(add-hook 'elixir-mode-hook
+          (lambda () (add-hook 'before-save-hook 'elixir-format nil t)))
+
 ;ruby
 (add-to-list 'load-path (envhome "emacs.d/ruby-mode"))
 (require 'ruby-mode)

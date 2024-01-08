@@ -50,7 +50,7 @@ if (Get-Command git -ErrorAction SilentlyContinue) {
 }
 
 # Copy other files (bash)
-install-object $HOME dot-bashrc dot-bash_functions dot-bash_prompt dot-bash_aliases dot-vimrc dot-inputrc
+install-object $HOME dot-bashrc dot-bash_functions dot-bash_prompt dot-bash_aliases dot-vimrc dot-inputrc dot-asdfrc
 
 # Copy files in bin without removing existing ones
 New-Item -Type Directory "${HOME}/bin" -ErrorAction SilentlyContinue
