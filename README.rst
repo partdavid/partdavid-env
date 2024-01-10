@@ -84,8 +84,15 @@ and it will be loaded and evaluated as an Emacs lisp file; similarly, with
 the others. The hostname in question is the value of the `HOSTNAME` environment
 variable.
 
+The location of this file is known as `$utilities` after the profile runs,
+so you can just type `$utilities` at the powershell prompt and it will tell
+you where it will look for specific machine profile stuff.
+
 Bash
 ~~~~
+
+I don't use bash (as a daily shell) anymore, so the Bash and prompt
+stuff here are not well-maintained.
 
 The following convenience aliases are provided:
 
