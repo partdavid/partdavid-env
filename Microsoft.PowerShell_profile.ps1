@@ -181,3 +181,5 @@ Function prompt {
   return "> "
 }
 Set-Alias rn Rename-Item
+
+$env:EDITOR = 'editor'
