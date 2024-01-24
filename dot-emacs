@@ -277,7 +277,8 @@ Uses `current-date-time-format' for the formatting the date/time."
     (setq sh-basic-offset 2)))
 
 ;go
-(setq go-path-directories (list (concat (getenv "HOME") "/go/bin") "/usr/local/go/bin" "/usr/local/bin"))
+(setq go-path-directories (list (concat (getenv "HOME") "/go/bin") (concat (getenv "HOME") "/bin")
+                                "/usr/local/go/bin" "/usr/local/bin"))
 (setq go-path-directories-added-p nil)
 (setq gofmt-command "goimports")
 (add-to-list 'load-path (envhome "emacs.d/go-mode"))

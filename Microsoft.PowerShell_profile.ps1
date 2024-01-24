@@ -88,7 +88,53 @@ if (Test-Path -Path $babylonian) {
   . $babylonian
 }
 
-Function prompt {
+# Temporary--doesn't work quite right
+Function Format-String {
+  [CmdletBinding(DefaultParameterSetName = 'Width')]
+  param(
+    [Parameter(Mandatory, Position=1, ParameterSetName = 'Width')] [ValidateRange('Positive')] [int]$Width,
+    [Parameter(ParameterSetName = 'Width')] [int]$MinTrailing = 3,
+    [Parameter(ParameterSetName = 'Width')] [int]$MinLeading = 3,
+    [Parameter(Mandatory, Position=0, ValueFromPipeline)] [string]$String,
+    [string]$Ellipsis = "`u{2026}",
+    [switch]$Force = $False
+  )
+
+  process {
+    if ($Width) {
+      if ($String.Length -le $Width) {
+        Write-Output $String
+      } elseif ($String.Length -gt ($MinTrailing.Length + $Ellipsis.Length + $MinTrailing.Length)) {
+        Write-Output ($String.Substring(0, ($Width - ($Ellipsis.Length + $MinTrailing.Length + 2))) + $Ellipsis + `
+          $String.Substring(($String.Length - $MinTrailing), $MinTrailing))
+      } elseif ($Force) {
+        if ($Ellipsis.Length -ge $Width) {
+          Write-Output $Ellipsis.Substring(0, $Width)
+        } else {
+          # $deficit is the number of characters we have to eat into our minimums
+          # and the priority is like this: 
+          # Width  MinLeading MinTrailing Ellispsis.Length Deficit Leading Trailing
+          #     7           3           3                1       0       3        3
+          #     6           3           3                1       1       3        2
+          #     5           3           3                1       2       2        2
+          #     4           3           3                1       3       2        1
+          #     3           3           3                1       4       1        1
+          #     2           3           3                1       5       1        0
+          #     1           3           3                1       6       0        0
+          $deficit = ($MinLeading + $Ellipsis.Length + $MinTrailing) - $Width
+          $trailing = $MinTrailing - [math]::ceiling($deficit / 2)
+          $leading = $MinLeading - [math]::floor($deficit / 2)
+          Write-Output ($String.Substring(0, $leading) + $Ellipsis + $String.Substring($String.Length - $trailing, $trailing))
+        }
+      } else {
+        Write-Output ($String.Substring(0, $MinLeading) + $Ellipsis + $String.Substring($String.Length - $MinTrailing, $MinTrailing))
+      }
+    }
+  }
+}
+
+
+function prompt {
   $realDollarQuestion = $?
   $realLASTEXITCODE = $LASTEXITCODE
 
@@ -102,7 +148,7 @@ Function prompt {
     $user = [Security.Principal.WindowsIdentity]::GetCurrent()
     $me = $user.Name
   } else {
-    $host_name = $Env:HOSTNAME
+    $host_name = $Env:HOSTNAME -replace '.local$'
     $user_name = $Env:USER
     $me = "$host_name\$Env:USER"
   }
@@ -121,13 +167,15 @@ Function prompt {
     # Git
     if ($gitstatus -ne $null) {
       $prev = $true
+      # Make configurable
       if ($gitstatus.Branch -in "main", "trunk", "master") {
         $color = "Red"
       } else {
         $color = "Green"
       }
-      Write-Host $gitstatus.Branch -ForegroundColor $color -NoNewLine
-      $position += $gitstatus.Branch.length
+      $branch = Format-String -Width 25 -String $gitstatus.Branch
+      Write-Host $branch -ForegroundColor $color -NoNewLine
+      $position += $branch.length
     }
 
     Write-Host "]" -NoNewLine
