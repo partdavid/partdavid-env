@@ -14,6 +14,15 @@
 (setq viper-mode 't)
 (require 'viper)
 
+;add various locations to PATH if they exist
+(setq possible-path-directories
+      (list (concat (getenv "HOME") "/.asdf/shims")))
+(dolist (dir possible-path-directories)
+  (when (file-exists-p dir)
+    (setenv "PATH" (concat dir ":" (getenv "PATH")))
+    (setq exec-path (cons dir exec-path))
+    ))
+
 ;source local host specific file-- ~/.emacs_hosts/<hostname>
 ;this is a good place to put strange system-specific stuff, like
 ;maybe special values of SSH_AUTH_SOCK required for TRAMP to work
