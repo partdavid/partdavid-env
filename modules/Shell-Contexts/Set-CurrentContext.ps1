@@ -9,9 +9,21 @@ You can use this advanced function to set your current "context",
 which can be displayed in your prompt (see prompt(), following) and
 automatically set/unset related environment variables, and run
 commands upon "entry" and "exit" from the context. It works best when
-the prompt() function consults the $Env:CURRENT_CONTEXT variable and
-$global:context_color variable to display the context. These variables
-are always set by Set-CurrentContext.
+the prompt() function uses the Write-CurrentContext cmdlet to write
+it into the prompt.
+
+I suggest making "use" an alias for this Cmdlet (see below for
+other suggested aliases).
+
+It's simplest to understand if you just 'use' one context at a time.
+However, you can actually pass multiple contexts to this command,
+or use the Add-CurrentContext and Remove-CurrentContext cmdlets
+to add contexts. For example, you may have 'dev', 'stage' and 'prod'
+contexts to interact with yor clusters in those environments, and
+you may have 'gh' and 'hg' contexts to interact with two source
+code control systems. You can do "Set-CurrentContext gh,prod" to
+use the gh and prod contexts simultaneously. It's up to you to make
+sure the contexts are miscible in this way.
 
 Contexts are defined in the ~/.contexts.yaml file. The YAML document consists
 of a mapping, the keys of which are the named context. Each context can have
@@ -86,12 +98,14 @@ Example ~/.contexts.yaml
     color: red
     env:
       AWS_PROFILE: contoso-production
-    globals:
-      StoredAWSCredential: contoso-production
     path:
       - /usr/dev-local/bin
     entry:
+      - aws sso login
+      - Set-AWSDefaultCredential -Scope global $env:AWS_PROFILE
       - kubectl use-context web-cluster-1
+    exit:
+      - Clear-AWSCredential
 
 .EXAMPLE
 
@@ -106,6 +120,7 @@ Here's another example, a little more complicated:
     env:
       AWS_PROFILE: contoso-production
     entry:
+      - aws sso login
       - kubectl use-context web-cluster-$Env:AWS_DEFAULT_REGION
       - Set-AWSCredentials -Scope global $Env:AWS_PROFILE
       - Set-AWSDefaultRegion -Scope global $Env:AWS_DEFAULT_REGION
@@ -146,27 +161,36 @@ the variables $StoredAWSRegion and $StoredAWSCredentials respectively),
 may offer a way to escape the scope (passing the -Scope parameter,
 just as you would need to do to use Set-Variable as an entry
 command). This may also require you to do manual fixups of
-these variables for exit
+these variables for exit.
+
+I suggest making the following aliases:
+
+  Set-Alias use Set-CurrentContext
+  Set-Alias add Add-CurrentContext
+  Set-Alias leave Remove-CurrentContext
+
+Of course you can use whatever aliases you find most ergonomic.
+The 'leave' command is a standard Unix command, though rarely used.
 
 #>
 function Set-CurrentContext {
   [CmdletBinding()]
 
   Param(
-    [parameter(mandatory=$false, position=0)] [String]$NewContext,
-    [parameter(mandatory=$false)] [Switch]$ListOnly
+    [parameter(mandatory=$false, position=0)] [string[]]$NewContext,
+    [parameter(mandatory=$false)] [switch]$ListOnly
   )
 
   if ($ListOnly) {
     Get-ContextConfiguration | Select-Object -ExpandProperty Name
   } else {
-
-    if ($Env:CURRENT_CONTEXT -ne $null) {
-      Exit-Context -Context $Env:CURRENT_CONTEXT
+    $existing_stack = $env:CURRENT_CONTEXT -split ',' | ?{ $_ }
+    if ($existing_stack) {
+      Remove-CurrentContext -Context $existing_stack
     }
 
-    if ($NewContext -ne "") {
-      Enter-Context -Context $NewContext
+    if ($NewContext) {
+      Add-CurrentContext -NewContext $NewContext
     }
   }
 }

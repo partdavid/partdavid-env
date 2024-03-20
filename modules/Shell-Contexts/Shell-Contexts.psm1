@@ -1,5 +1,7 @@
 $commands = @{
+  'Add-CurrentContext' = $true
   'Set-CurrentContext'  = $true
+  'Remove-CurrentContext' = $true
   'Get-CurrentContext'  = $true
   'Write-CurrentContext' = $true
   'Add-PathDirectory' = $true

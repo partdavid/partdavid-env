@@ -28,6 +28,8 @@ Set-PSReadLineKeyHandler -Key 's' -Function ForwardChar -ViMode Command
 Set-PSReadlineKeyHandler -Key Tab -Function Complete
 
 Set-Alias use Set-CurrentContext
+Set-Alias add Add-CurrentContext
+Set-Alias leave Remove-CurrentContext
 
 if ($IsWindows) {
   $env:HOSTNAME = $env:COMPUTERNAME

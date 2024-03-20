@@ -1,12 +1,12 @@
 <#
 .SYNOPSIS
 
-Get the current context as a string
+Get the current context as an array
 
 .DESCRIPTION
 
-Return the current context as a string. Return the color of the
-current context when the -Color switch is given.
+Return the current contexts as a string. Return the colors of the
+current contexts when the -Color switch is given.
 #>
 function Get-CurrentContext {
   [CmdletBinding()]
@@ -14,8 +14,11 @@ function Get-CurrentContext {
     [Parameter()] [Switch]$Color
   )
   if ($Color) {
-    $global:context_color
+    $Env:CURRENT_CONTEXT -split ',' | ?{ $_ } | %{
+      $cfg = Get-ContextConfiguration -Context
+      $cfg.color ?? 'gray'
+    }
   } else {
-    $Env:CURRENT_CONTEXT
+    $Env:CURRENT_CONTEXT -split ',' | ?{ $_ }
   }
 }

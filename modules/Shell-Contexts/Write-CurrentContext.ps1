@@ -19,8 +19,17 @@ function Write-CurrentContext {
   $length = 0
 
   if ($Env:CURRENT_CONTEXT) {
-    Write-Host "$Env:CURRENT_CONTEXT" -ForegroundColor $global:context_color -NoNewLine
-    $length += $Env:CURRENT_CONTEXT.length
+    $contexts = $Env:CURRENT_CONTEXT -split ',' | ?{ $_ }
+    foreach ($ctx in $contexts) {
+      $cfg = Get-ContextConfiguration -Context $ctx
+      $color = $cfg.color ?? 'gray'
+      if ($length -gt 0) {
+        Write-Host ',' -NoNewLine
+        $length += 1
+      }
+      Write-Host $ctx -ForegroundColor $color -NoNewLine
+      $length += $ctx.length
+    }
 
     if (-not $NoPadding) {
       Write-Host ' ' -NoNewLine

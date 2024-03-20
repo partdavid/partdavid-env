@@ -5,15 +5,16 @@ function Enter-Context {
     [Parameter(Mandatory=$True, Position=0)] [String]$Context
   )
 
+  Write-Debug "Entering context: $Context"
+  Write-Debug "(before) `$Env:CURRENT_CONTEXT = $Env:CURRENT_CONTEXT"
+
   $config = Get-ContextConfiguration -Context $Context
 
-  $Env:CURRENT_CONTEXT = $Context
-  $global:context_color = 'Gray'
+  [array]$contexts = $Env:CURRENT_CONTEXT -split ',' | ?{ $_ }
+  $contexts += @($Context)
+  $Env:CURRENT_CONTEXT = $contexts -join ','
+  Write-Debug "(after) `$Env:CURRENT_CONTEXT = $Env:CURRENT_CONTEXT"
     
-  if ($config.color -ne $Null) {
-    $global:context_color = $config.color
-  }
-      
   if ($config.env -ne $null) {
     foreach ($var in $config.env.keys) {
       Set-Content -Path Env:$var -Value $config.env[$var]

@@ -5,14 +5,23 @@ function Exit-Context {
     [Parameter(Mandatory=$True, Position=0)] [String]$Context
   )
 
+  Write-Debug "Exiting context: $Context"
+
   $config = Get-ContextConfiguration -Context $Context
 
-  if ($Env:CURRENT_CONTEXT -eq $Context) {
-    Remove-Item -Path Env:CURRENT_CONTEXT
+  Write-Debug "(before) `$Env:CURRENT_CONTEXT = $($Env:CURRENT_CONTEXT)"
+  $existing_stack = $Env:CURRENT_CONTEXT -split ',' | ?{ $_ }
+  if ($existing_stack -contains $Context) {
+    $stack = $existing_stack | ?{ $_ -ne $Context }
+    if ($stack) {
+      $stack -join ',' | Set-Content Env:CURRENT_CONTEXT
+      Write-Debug "(after) `$Env:CURRENT_CONTEXT = $($Env:CURRENT_CONTEXT)"
+    } else {
+      Remove-Item Env:CURRENT_CONTEXT
+    }
   } else {
-    Write-Warning "Exiting non-current context $Context (current context is $Env:CURRENT_CONTEXT)--context is probably corrupt"
+    Write-Warning "Exiting non-current context $Context (current contexts are $Env:CURRENT_CONTEXT)--context is probably corrupt"
   }
-
 
   if ($config.exit -ne $null) {
     foreach ($cmd in $config.exit) {
