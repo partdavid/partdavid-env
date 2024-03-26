@@ -230,6 +230,19 @@ function prompt {
   $global:LASTEXITCODE = $realLASTEXITCODE
   return "> "
 }
+
+# Aliases
 Set-Alias rn Rename-Item
+Set-Alias cfj ConvertFrom-Json
+Set-Alias ctj ConvertTo-Json
+Set-Alias cfy ConvertFrom-Yaml
+Set-Alias cty ConvertTo-Yaml
+Set-Alias -Name sco -Value Select-Object
+Set-Alias -Name wrh -Value Write-Host
+Set-Alias -Name so -Value Sort-Object
+Set-Alias -Name sc -Value Set-Content
+Set-Alias -Name to -Value Tee-Object
+
+
 
 $env:EDITOR = 'editor'
