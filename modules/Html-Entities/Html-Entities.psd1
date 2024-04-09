@@ -1,6 +1,6 @@
 @{
   RootModule = 'Html-Entities.psm1'
-  ModuleVersion = '0.5.0'
+  ModuleVersion = '0.5.1'
   GUID = 'f6d7429e-80f1-4059-a645-ccd2d19e1a37'
   Author = 'partdavid'
   Copyright = '(c) 2024 partdavid. All rights reserved.'

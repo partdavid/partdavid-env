@@ -29,7 +29,7 @@ function Get-HtmlEntity {
     Write-Debug "Symbolic substitution of & entity name ($Code)"
     if (Test-Path $UserEntityLocation) {
       Write-Debug "UserEntityLocation exists: $UserEntityLocation"
-      if (-not $global:UserHtmlEntitiesTS -or (Test-Path $UserEntityLocation -OlderThan $global:UserHtmlEntitiesTS)) {
+      if (-not $global:UserHtmlEntitiesTS -or (Test-Path $UserEntityLocation -NewerThan $global:UserHtmlEntitiesTS)) {
         Write-Debug "Re-caching UserHtmlEntities"
         $global:UserHtmlEntitiesTS = Get-Item $UserEntityLocation | Select-Object -ExpandProperty LastWriteTime
         $global:UserHtmlEntities = ConvertFrom-HtmlEntityCsv -EntityLocation $UserEntityLocation
@@ -37,7 +37,7 @@ function Get-HtmlEntity {
     }
     if (Test-Path $StandardEntityLocation) {
       Write-Debug "StandardEntityLocation exists: $StandardEntityLocation"
-      if (-not $global:StandardHtmlEntitiesTS -or (Test-Path $StandardEntityLocation -OlderThan $global:StandardHtmlEntitiesTS)) {
+      if (-not $global:StandardHtmlEntitiesTS -or (Test-Path $StandardEntityLocation -NewerThan $global:StandardHtmlEntitiesTS)) {
         Write-Debug "Re-caching StandardHtmlEntities"
         $global:StandardHtmlEntitiesTS = Get-Item $StandardEntityLocation | Select-Object -ExpandProperty LastWriteTime
         $global:StandardHtmlEntities = ConvertFrom-HtmlEntityCsv -EntityLocation $StandardEntityLocation
