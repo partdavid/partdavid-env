@@ -55,6 +55,19 @@ Run:
 
 Probably enable CLI integration and SSH agent. Set your SSH agent in the environment.
 
+## Install 1Pasword CLI
+
+```
+ARCH="<choose between 386/amd64/arm/arm64>" && \
+wget "https://cache.agilebits.com/dist/1P/op2/pkg/v2.30.0/op_linux_${ARCH}_v2.30.0.zip" -O op.zip && \
+unzip -d op op.zip && \
+sudo mv op/op /usr/local/bin/ && \
+rm -r op.zip op && \
+sudo groupadd -f onepassword-cli && \
+sudo chgrp onepassword-cli /usr/local/bin/op && \
+sudo chmod g+s /usr/local/bin/op
+```
+
 ## Clone this repo
 
 ```
