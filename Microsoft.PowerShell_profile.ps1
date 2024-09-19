@@ -51,7 +51,12 @@ foreach ($dir in '/usr/local/bin',"${HOME}/bin") {
 # if (Test-Path $asdf_env) {
 #   . $asdf_env
 # }
-$Env:ASDF_DIR = "$(brew --prefix asdf)/libexec"
+# Maybe put some code in $utilities for the plugins you like
+if (Get-Command brew -ErrorAction SilentlyContinue) {
+  $Env:ASDF_DIR = "$(brew --prefix asdf)/libexec"
+} elseif (Test-Path "${Env:HOME}/.asdf") {
+  . "${Env:HOME}/.asdf/asdf.ps1"
+}
 if (Test-Path "$($Env:ASDF_DIR)/bin") {
   Add-PathDirectory "$($Env:ASDF_DIR)/bin"
   if ($null -eq $Env:ASDF_DATA_DIR -or $Env:ASDF_DATA_DIR -eq '') {
@@ -74,8 +79,6 @@ if (Test-Path "$($Env:ASDF_DIR)/bin") {
       & $asdf $args
     }
   }
-
-  # Maybe put some code in $utilities for the plugins you like
 }
 
 $utilities = Join-Path $HOME -ChildPath '.pwsh_hosts' -AdditionalChildPath "$($env:HOSTNAME).ps1"

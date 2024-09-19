@@ -43,7 +43,6 @@ source_if_set() {
     fi
 }
 
-source_if_set "$HOSTNAME" bash_hosts/"$HOSTNAME"
 source_if_set "$SET_TZ" bash_tz
 source_if_set "$SOURCE_PATH" bash_path
 source_if_set "$SOURCE_FUNCTIONS" bash_functions
@@ -74,3 +73,4 @@ fi
 set -o vi
 
 alias r='. $ENV_HOME/.bashrc'
+source_if_set "$HOSTNAME" bash_hosts/"$HOSTNAME"
