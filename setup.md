@@ -67,5 +67,12 @@ Maybe add other environment stuff in `~/.pwsh_hosts/${env:HOSTNAME}.ps1`
 
 ## Work Stuff for AWS
 
+- Install aws cli:
+    ```
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "awscliv2.zip"
+    unzip awscliv2.zip
+    sudo ./aws/install
+    ```
+- Install Powertools
 - Configure AWS
 
