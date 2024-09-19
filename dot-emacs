@@ -216,6 +216,10 @@ Uses `current-date-time-format' for the formatting the date/time."
   (tide-hl-identifier-mode +1)
   (company-mode +1))
 
+;kotlin-mode
+;https://github.com/Emacs-Kotlin-Mode-Maintainers/kotlin-mode
+(use-package kotlin-mode :ensure t)
+
 ;elixir-mode (not elixir-ls)
 ;https://github.com/elixir-editors/emacs-elixir
 (use-package elixir-mode :ensure t)
