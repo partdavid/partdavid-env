@@ -215,6 +215,16 @@ Uses `current-date-time-format' for the formatting the date/time."
   (eldoc-mode +1)
   (tide-hl-identifier-mode +1)
   (company-mode +1))
+(add-hook 'before-save-hook 'tide-format-before-save)
+(add-hook 'typescript-mode-hook #'setup-tide-mode)
+
+;tsx
+(use-package web-mode :ensure t)
+(add-to-list 'auto-mode-alist '("\\.tsx\\'" . web-mode))
+(add-hook 'web-mode-hook
+          (lambda () (when (string-equal "tsx" (file-name-extension buffer-file-name))
+                       (setup-tide-mode))))
+(flycheck-add-mode 'typescript-tslint 'web-mode)
 
 ;kotlin-mode
 ;https://github.com/Emacs-Kotlin-Mode-Maintainers/kotlin-mode
