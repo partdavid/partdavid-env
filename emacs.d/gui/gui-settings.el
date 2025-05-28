@@ -6,7 +6,7 @@
 (set-face-attribute 'default nil :family "ProfontWindows")
 (set-face-attribute 'default nil :height (if
                                              (<= (display-pixel-height) 1000)
-                                             120
+                                             160
                                            200))
 
 

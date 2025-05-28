@@ -16,7 +16,7 @@
 
 ;add various locations to PATH if they exist
 (setq possible-path-directories
-      (list (concat (getenv "HOME") "/.asdf/shims")))
+      (list (concat (getenv "HOME") "/.asdf/shims") (concat (getenv "HOME") "/bin")))
 (dolist (dir possible-path-directories)
   (when (file-exists-p dir)
     (setenv "PATH" (concat dir ":" (getenv "PATH")))
@@ -160,6 +160,24 @@ Uses `current-date-time-format' for the formatting the date/time."
 (if (display-graphic-p)
   (require 'gui-settings))
 
+;copilot
+(use-package copilot
+  :vc (:url "https://github.com/copilot-emacs/copilot.el"
+            :rev :newest
+            :branch "main")
+  :hook
+  (prog-mode . enable-copilot-mode)
+  (ruby-mode . enable-copilot-mode)
+  :config
+  (setq copilot-server-args '("--stdio" "--debug"))
+  (setq copilot-log-max 1000))
+
+(defun enable-copilot-mode ()
+  (copilot-mode 1)
+  (define-key copilot-completion-map (kbd "<right>") 'copilot-accept-completion-by-line)
+  (define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion-by-word)
+  (define-key copilot-completion-map (kbd "<C-return>") 'copilot-accept-completion))
+
 ;backups
 (setq backup-by-copying t)
 (setq backup-directory-alist `(("." . "~/.backups")))
@@ -195,6 +213,26 @@ Uses `current-date-time-format' for the formatting the date/time."
   (unless (package-installed-p package)
     (package-install package)))
 
+(setq treesit-language-source-alist
+   '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+     (cmake "https://github.com/uyha/tree-sitter-cmake")
+     (css "https://github.com/tree-sitter/tree-sitter-css")
+     (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+     (go "https://github.com/tree-sitter/tree-sitter-go")
+     (html "https://github.com/tree-sitter/tree-sitter-html")
+     (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+     (json "https://github.com/tree-sitter/tree-sitter-json")
+     (make "https://github.com/alemuller/tree-sitter-make")
+     (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+     (python "https://github.com/tree-sitter/tree-sitter-python")
+     (toml "https://github.com/tree-sitter/tree-sitter-toml")
+     (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
+     (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
+     (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
+
+(setq major-mode-remap-alist
+ '((typescript-mode . typescript-ts-mode)))
+
 ; https://www.emacswiki.org/emacs/InstallingPackages#h5o-2
 ; https://www.gnu.org/software/emacs/manual/html_node/emacs/Package-Installation.html
 ; https://melpa.org/#/getting-started
@@ -205,18 +243,20 @@ Uses `current-date-time-format' for the formatting the date/time."
 ;typescript
 (require 'use-package)
 (use-package tide :ensure t)
-(use-package company :ensure t)
-(use-package flycheck :ensure t)
+(use-package flycheck :ensure t :config (flycheck-add-mode 'typescript-tslint 'web-mode))
 (defun setup-tide-mode ()
   (interactive)
   (tide-setup)
   (flycheck-mode +1)
   (setq flycheck-check-syntax-automatically '(save mode-enabled))
   (eldoc-mode +1)
-  (tide-hl-identifier-mode +1)
-  (company-mode +1))
+  (tide-hl-identifier-mode +1))
 (add-hook 'before-save-hook 'tide-format-before-save)
 (add-hook 'typescript-mode-hook #'setup-tide-mode)
+(add-hook 'typescript-mode-hook #'lsp)
+(add-hook 'typescript-ts-mode-hook #'setup-tide-mode)
+(add-hook 'typescript-ts-mode-hook #'lsp)
+(add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-mode))
 
 ;tsx
 (use-package web-mode :ensure t)
@@ -224,11 +264,22 @@ Uses `current-date-time-format' for the formatting the date/time."
 (add-hook 'web-mode-hook
           (lambda () (when (string-equal "tsx" (file-name-extension buffer-file-name))
                        (setup-tide-mode))))
-(flycheck-add-mode 'typescript-tslint 'web-mode)
+(add-hook 'web-mode-hook
+          (lambda () (when (string-equal "tsx" (file-name-extension buffer-file-name))
+                       (typescript-ts-mode))))
+(add-hook 'tsx-ts-mode-hook #'lsp)
+
+;graphql-mode
+;https://github.com/davazp/graphql-mode
+(use-package graphql-mode :ensure t)
 
 ;kotlin-mode
 ;https://github.com/Emacs-Kotlin-Mode-Maintainers/kotlin-mode
-(use-package kotlin-mode :ensure t)
+(use-package lsp-mode :ensure t)
+(use-package lsp-ui :ensure t)
+(use-package kotlin-mode
+  :ensure t
+  :hook (kotlin-mode . lsp))
 
 ;elixir-mode (not elixir-ls)
 ;https://github.com/elixir-editors/emacs-elixir
@@ -251,10 +302,14 @@ Uses `current-date-time-format' for the formatting the date/time."
 (add-to-list 'interpreter-mode-alist '("ruby" . ruby-mode))
 (add-to-list 'interpreter-mode-alist '("rspec" . ruby-mode))
 (add-hook 'ruby-mode-hook 'turn-on-font-lock)
+(add-hook 'ruby-mode-hook #'lsp)
 (add-hook 'ruby-mode-hook
   '(lambda ()
     (setq ruby-insert-encoding-magic-comment nil)
-    (setq ruby-indent-level standard-indent)))
+    (setq ruby-indent-level standard-indent)
+    (setq ruby-align-to-stmt-keywords nil)
+    (setq ruby-deep-indent-paren nil)
+    (setq ruby-use-smie nil)))
 
 ;javascript
 (setq js-indent-level standard-indent)
@@ -387,7 +442,8 @@ Uses `current-date-time-format' for the formatting the date/time."
 (add-to-list 'auto-mode-alist '("\\.psd1\\'" . powershell-mode))
 (add-hook 'powershell-mode-hook
           (lambda ()
-            (setq powershell-indent standard-indent)))
+            (setq powershell-indent standard-indent)
+            (font-lock-mode 1)))
 
 ;rust
 (add-to-list 'load-path (envhome "emacs.d/rust-mode"))
@@ -401,18 +457,7 @@ Uses `current-date-time-format' for the formatting the date/time."
   "Major mode for editing C# files" t)
 (add-to-list 'auto-mode-alist '("\\.cs\\'" . csharp-mode))
 
-(add-hook 'ruby-mode-hook
-  '(lambda ()
-    (setq ruby-insert-encoding-magic-comment nil)
-    (setq ruby-indent-level standard-indent)))
-
 (run-hooks 'after-init-hook)
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages '(use-package tide company)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

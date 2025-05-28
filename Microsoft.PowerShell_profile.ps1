@@ -53,7 +53,8 @@ foreach ($dir in '/usr/local/bin',"${HOME}/bin") {
 # }
 # Maybe put some code in $utilities for the plugins you like
 if (Get-Command brew -ErrorAction SilentlyContinue) {
-  $Env:ASDF_DIR = "$(brew --prefix asdf)/libexec"
+  # asdf removed libexec?
+  $Env:ASDF_DIR = "$(brew --prefix asdf)"
 } elseif (Test-Path "${Env:HOME}/.asdf") {
   . "${Env:HOME}/.asdf/asdf.ps1"
 }

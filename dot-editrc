@@ -1,0 +1,6 @@
+bind -v
+bind \\t rl_complete
+bind h vi-prev-char
+bind t ed-prev-history
+bind n ed-next-history
+bind s vi-next-char
