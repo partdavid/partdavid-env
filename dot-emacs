@@ -152,31 +152,24 @@ Uses `current-date-time-format' for the formatting the date/time."
   (insert (format-time-string current-time-format (current-time)))
   )
 
+(defun insert-uuid-v4 ()
+  "insert a random UUID v4 into the current buffer."
+  (interactive)
+  (insert (format "%04x%04x-%04x-%04x-%04x-%04x%04x%04x"
+                 (random 65536) (random 65536)
+                 (random 65536)
+                 (+ 16384 (random 4096)) ; version 4
+                 (+ 32768 (random 16384)) ; variant
+                 (random 65536) (random 65536) (random 65536))))
+
 (global-set-key "\C-c\C-d" 'insert-current-date-time)
 (global-set-key "\C-c\C-t" 'insert-current-time)
+(global-set-key "\C-c\C-u" 'insert-uuid-v4)
 
 ;gui
 (add-to-list 'load-path (envhome "emacs.d/gui"))
 (if (display-graphic-p)
   (require 'gui-settings))
-
-;copilot
-(use-package copilot
-  :vc (:url "https://github.com/copilot-emacs/copilot.el"
-            :rev :newest
-            :branch "main")
-  :hook
-  (prog-mode . enable-copilot-mode)
-  (ruby-mode . enable-copilot-mode)
-  :config
-  (setq copilot-server-args '("--stdio" "--debug"))
-  (setq copilot-log-max 1000))
-
-(defun enable-copilot-mode ()
-  (copilot-mode 1)
-  (define-key copilot-completion-map (kbd "<right>") 'copilot-accept-completion-by-line)
-  (define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion-by-word)
-  (define-key copilot-completion-map (kbd "<C-return>") 'copilot-accept-completion))
 
 ;backups
 (setq backup-by-copying t)
@@ -212,6 +205,12 @@ Uses `current-date-time-format' for the formatting the date/time."
 (dolist (package '(use-package))
   (unless (package-installed-p package)
     (package-install package)))
+
+; theme
+(use-package zenburn-theme
+  :ensure t
+  :config
+  (load-theme 'zenburn t))
 
 (setq treesit-language-source-alist
    '((bash "https://github.com/tree-sitter/tree-sitter-bash")
@@ -257,6 +256,27 @@ Uses `current-date-time-format' for the formatting the date/time."
 (add-hook 'typescript-ts-mode-hook #'setup-tide-mode)
 (add-hook 'typescript-ts-mode-hook #'lsp)
 (add-to-list 'auto-mode-alist '("\\.ts\\'" . typescript-mode))
+
+;copilot
+(use-package copilot
+  :vc (:url "https://github.com/copilot-emacs/copilot.el"
+            :rev :newest
+            :branch "main")
+  :hook
+  (prog-mode . enable-copilot-mode)
+  (ruby-mode . enable-copilot-mode)
+  :config
+  (setq copilot-server-args '("--stdio" "--debug"))
+  (setq copilot-log-max 1000))
+
+(defun enable-copilot-mode ()
+  (copilot-mode 1)
+  (define-key copilot-completion-map (kbd "<right>") 'copilot-accept-completion-by-line)
+  (define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion-by-word)
+  (define-key copilot-completion-map (kbd "<C-return>") 'copilot-accept-completion))
+
+(setq warning-suppress-log-types '((copilot copilot-no-mode-indent) (copilot copilot-exceeds-max-char)))
+
 
 ;tsx
 (use-package web-mode :ensure t)
