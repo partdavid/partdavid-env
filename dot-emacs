@@ -206,7 +206,18 @@ Uses `current-date-time-format' for the formatting the date/time."
   (unless (package-installed-p package)
     (package-install package)))
 
-; theme
+;theme
+(setq zenburn-override-colors-alist
+      '(("zenburn-bg-2"     . "#000000")
+        ("zenburn-bg-1"     . "#0B0B0B")
+        ("zenburn-bg-08"    . "#101010")
+        ("zenburn-bg-05"    . "#181818")
+        ("zenburn-bg"       . "#1F1F1F")
+        ("zenburn-bg+05"    . "#393939")
+        ("zenburn-bg+1"     . "#3F3F3F")
+        ("zenburn-bg+2"     . "#4F4F4F")
+        ("zenburn-bg+3"     . "#5F5F5F")))
+
 (use-package zenburn-theme
   :ensure t
   :config
