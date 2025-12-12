@@ -224,6 +224,8 @@ Uses `current-date-time-format' for the formatting the date/time."
   :config
   (load-theme 'zenburn t))
 
+(set-cursor-color "green")
+
 (setq treesit-language-source-alist
    '((bash "https://github.com/tree-sitter/tree-sitter-bash")
      (cmake "https://github.com/uyha/tree-sitter-cmake")
@@ -404,11 +406,14 @@ Uses `current-date-time-format' for the formatting the date/time."
 (setq go-path-directories (list (concat (getenv "HOME") "/go/bin") (concat (getenv "HOME") "/bin")
                                 "/usr/local/go/bin" "/usr/local/bin"))
 (setq go-path-directories-added-p nil)
-(setq gofmt-command "goimports")
 (add-to-list 'load-path (envhome "emacs.d/go-mode"))
 (autoload 'go-mode "go-mode" "Major mode for editing go source")
 (add-to-list 'auto-mode-alist '("\\.go$" . go-mode))
-(add-hook 'before-save-hook 'gofmt-before-save)
+(add-hook 'go-mode-hook #'lsp-deferred)
+(defun lsp-go-install-save-hooks ()
+  (add-hook 'before-save-hook #'lsp-format-buffer t t)
+  (add-hook 'before-save-hook #'lsp-organize-imports t t))
+(add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
 
 ;protobuf
 ;protobuf doesn't have an indent level, it does this weird hook thing

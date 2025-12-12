@@ -24,8 +24,8 @@ sudo ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh
 ```
 
 Once you're sure it works:
-
-```
+`
+``
 mkdir -p ~/.bash_hosts
 cat <<EOF >~/.bash_hosts/"${HOSTNAME}"
 #!bash

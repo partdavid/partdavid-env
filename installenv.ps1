@@ -65,6 +65,9 @@ if (! $IsWindows) {
   install-object "${HOME}" "./Library/Application Support/iTerm2/DynamicProfiles/partdavid-pwsh.json"
 }
 
+# asdf
+install-object "${HOME}" dot-asdfrc
+
 # Install Modules (should really be in a better version-qualified path)
 $local_modules_dir = $env:PSModulePath.split([IO.Path]::PathSeparator).where({ $_ -match "$HOME*" }) | Select -First 1
 
