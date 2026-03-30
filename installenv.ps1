@@ -60,11 +60,6 @@ Get-ChildItem bin | Copy-Item -Destination "${HOME}/bin" -Recurse
 install-object $powershell_config_dir Microsoft.PowerShell_profile.ps1
 install-object $powershell_config_dir ConvertTo-Babylonian.ps1
 
-# Copy iTerm2 profile
-if (! $IsWindows) {
-  install-object "${HOME}" "./Library/Application Support/iTerm2/DynamicProfiles/partdavid-pwsh.json"
-}
-
 # asdf
 install-object "${HOME}" dot-asdfrc
 
@@ -78,3 +73,6 @@ foreach ($module_source_dir in (Get-ChildItem -Path modules)) {
   Write-Host "Copying module $from -> $to"
   Copy-Item -Recurse -Force -Path $from -Destination $to
 }
+
+# Reminder about manual configurations
+write-output "You may need to manually install: partdavid-pwsh.json (import in iTerm2)"

@@ -16,7 +16,10 @@
 
 ;add various locations to PATH if they exist
 (setq possible-path-directories
-      (list (concat (getenv "HOME") "/.asdf/shims") (concat (getenv "HOME") "/bin")))
+      (list
+       (concat (getenv "HOME") "/.asdf/shims")
+       (concat (getenv "HOME") "/bin")
+       (concat (getenv "HOME") "/.local/bin")))
 (dolist (dir possible-path-directories)
   (when (file-exists-p dir)
     (setenv "PATH" (concat dir ":" (getenv "PATH")))
@@ -277,6 +280,35 @@ Uses `current-date-time-format' for the formatting the date/time."
   :config
   (setq auth-source-1password-vault "Employee"))
 (auth-source-1password-enable)
+
+;claude-code
+; https://github.com/stevemolitor/claude-code.el/blob/4a9914bd4161eb43f489820f9174c62390e5adc8/README.md#using-builtin-use-package-emacs-30
+(use-package inheritenv
+  :vc (:url "https://github.com/purcell/inheritenv" :rev :newest))
+
+;; for eat terminal backend:
+(use-package eat :ensure t)
+
+;; for vterm terminal backend:
+(use-package vterm :ensure t)
+
+;; monet (for secret IDE protocol)
+(use-package monet
+  :vc (:url "https://github.com/stevemolitor/monet" :rev :newest))
+
+;; install claude-code.el
+(use-package claude-code :ensure t
+  :vc (:url "https://github.com/stevemolitor/claude-code.el" :rev :newest)
+  :config
+  ;; optional IDE integration with Monet
+  (add-hook 'claude-code-process-environment-functions #'monet-start-server-function)
+  (monet-mode 1)
+  (claude-code-mode)
+  :bind-keymap ("C-c c" . claude-code-command-map)
+
+  ;; Optionally define a repeat map so that "M" will cycle thru Claude auto-accept/plan/confirm modes after invoking claude-code-cycle-mode / C-c M.
+  :bind
+  (:repeat-map my-claude-code-map ("M" . claude-code-cycle-mode)))
 
 ;copilot
 (use-package copilot

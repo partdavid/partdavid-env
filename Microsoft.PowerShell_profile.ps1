@@ -82,8 +82,12 @@ if (Test-Path "$($Env:ASDF_DIR)/bin") {
   }
 }
 
-$utilities = Join-Path $HOME -ChildPath '.pwsh_hosts' -AdditionalChildPath "$($env:HOSTNAME).ps1"
-
+if ($IsMacOS) {
+  $host_id = ioreg -rd1 -c IOPlatformExpertDevice -a | plutil -extract '0.IOPlatformUUID' raw -o - -
+} else {
+  $host_id = $env:HOSTNAME
+}
+$utilities = Join-Path $HOME -ChildPath '.pwsh_hosts' -AdditionalChildPath "${host_id}.ps1"
 if (Test-Path -Path $utilities) {
   . $utilities
 }
@@ -179,7 +183,7 @@ function prompt {
       } else {
         $color = "Green"
       }
-      $branch = Format-String -Width 25 -String $gitstatus.Branch
+      $branch = Format-String -Width 28 -String $gitstatus.Branch
       Write-Host $branch -ForegroundColor $color -NoNewLine
       $position += $branch.length
     }
