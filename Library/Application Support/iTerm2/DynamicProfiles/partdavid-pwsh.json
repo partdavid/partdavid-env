@@ -1,0 +1,10 @@
+{
+  "Profiles" : [
+    {
+      "Use Separate Colors for Light and Dark Mode" : false,
+      "Name" : "partdavid-pwsh",
+      "Rewritable" : true,
+      "Guid" : "B4BBFAB5-BB9D-4B3C-A739-3F4CBF0D58EA"
+    }
+  ]
+}
