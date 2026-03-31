@@ -157,7 +157,7 @@
   },
   "Silence Bell" : false,
   "Rows" : 40,
-  "Guid" : "B4BBFAB5-BB9D-4B3C-A739-3F4CBF0D58EA",
+  "Guid" : "81D1185F-B9FB-49A8-B564-3A40FC984712",
   "Ansi 14 Color (Dark)" : {
     "Red Component" : 0.37597531080245972,
     "Color Space" : "sRGB",
@@ -465,7 +465,7 @@
   "Shortcut" : "",
   "Mouse Reporting" : true,
   "Tags" : [
-    "Dynamic"
+
   ],
   "Ansi 6 Color (Light)" : {
     "Red Component" : 0,
@@ -590,5 +590,6 @@
     "Alpha Component" : 1,
     "Green Component" : 0.098039217293262482
   },
+  "Initial Text" : "",
   "Badge Right Margin" : 10
 }
